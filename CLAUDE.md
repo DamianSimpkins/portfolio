@@ -19,25 +19,35 @@ Design system reference at `/design-system` (dev only). The page lives at `src/d
 - `src/pages/` — Astro pages (file-based routing)
 - `src/dev/` — dev-only pages injected via `astro.config.mjs`
 - `src/layouts/Base.astro` — shared head, nav and footer
-- `src/components/` — reusable Astro components (Nav, Footer, Button, SectionHeader, ProjectCard)
+- `src/components/` — reusable Astro components (Nav, Footer, SectionHeader, ProjectList, Gallery)
 - `src/content/projects/` — one markdown file per project (Content Collection)
 - `src/content.config.ts` — collection schema
 - `public/styles.css` — all CSS and design tokens
 
 ## Design system — two layers
 
-Raw scale (`--text-*`, `--space-*`) → semantic aliases (`--display`, `--heading-01..05`, `--lead`, `--body`, `--body-sm`, `--meta`) → utility classes (`.display`, `.heading-01`, `.lead`, `.body` etc.)
+Raw scale (`--text-*`, `--space-*`) → semantic aliases (`--display`, `--heading-01..05`, `--intro`, `--lead`, `--body`, `--body-sm`, `--meta`) → utility classes (`.display`, `.heading-01`, `.lead`, `.body` etc.)
 
 - No prefix on semantic tokens or classes.
 - Every scale size must have both an alias and a class.
 - Components use aliases and classes only, never raw `--text-*` values or magic numbers.
 - Colours come from `--color-*` tokens. Do not hardcode hex values in components.
 
+## Visual direction
+
+Quiet and typographic. References: lucydatyner.com (first-person intro, plain lists) and mikekus.com (label column + content column, hairline grid).
+
+- Fluid layout: `.container` has no max width. One side margin (`--gutter`) for text and images alike, stepping up at 48rem and 75rem. Don't inset images separately. Text line length is capped by `--measure` / `--measure-intro`, not by the container.
+- Pages open with large first-person `.intro` paragraphs, aligned to the content column with `.content-col`.
+- Labels are sentence case and muted. No numbered section labels (01, 02), no uppercase-tracked or monospace metadata, no year columns. These read as generic AI-generated portfolio tropes.
+- Lists are plain text (`.plain-list`), not cards. Use inline `.subtle-link` rather than buttons.
+- Case study pages (`src/pages/work/[id].astro`), after the Kus Studio case study layout: meta strip → Overview → `galleryTop` → What I did + 3-column services → `galleryBottom` → Next project. Only two image shapes: `full` (3:2, full width) and `half` (square, two-up). Keep it that simple. No rounded corners anywhere on the site.
+
 ## Components
 
 - Reuse an existing component before writing new markup. Add a variant only when it is used somewhere.
 - Delete unused variants rather than leaving them behind.
-- Section numbering/labels go through `SectionHeader`; do not hand-roll the rule + label markup.
+- Section labels go through `SectionHeader`, placed as the first child of a `.split` (label column + content column, hairline above).
 
 ## Astro notes
 

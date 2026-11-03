@@ -1,9 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import Button from '../components/Button.astro';
 import SectionHeader from '../components/SectionHeader.astro';
-import ProjectCard from '../components/ProjectCard.astro';
+import ProjectList from '../components/ProjectList.astro';
 
 const featured = (await getCollection('projects', ({ data }) => data.featured))
   .sort((a, b) => a.data.order - b.data.order);
@@ -11,24 +10,23 @@ const featured = (await getCollection('projects', ({ data }) => data.featured))
 
 <Base>
   <section class="section">
-    <div class="container stack-lg">
-      <h1 class="display measure">Designer and developer building considered websites.</h1>
-      <p class="lead measure">
-        Placeholder intro. A sentence or two about what you do, who you do it for and where you are based.
+    <div class="container"><div class="content-col stack">
+      <h1 data-reveal class="intro">
+        I'm Damian Simpkins, a [role] based in [city]. Replace this with a sentence on what you do and who for.
+      </h1>
+      <p data-reveal class="intro">
+        A second sentence or two on how you work and what you care about in the work.
       </p>
-      <p class="cluster">
-        <Button href="/work">View work</Button>
-        <Button href="/about" variant="secondary">About me</Button>
+      <p data-reveal class="intro">
+        Have a project in mind? <a class="subtle-link" href="/contact">Let's talk.</a>
       </p>
-    </div>
+    </div></div>
   </section>
 
   <section class="section" aria-labelledby="featured">
-    <div class="container">
-      <SectionHeader number="01" label="Selected work" id="featured" />
-      <div class="grid-2">
-        {featured.map((project) => <ProjectCard project={project} />)}
-      </div>
+    <div class="container split">
+      <SectionHeader label="Selected work" id="featured" />
+      <ProjectList projects={featured} />
     </div>
   </section>
 </Base>

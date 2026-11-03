@@ -1,0 +1,39 @@
+---
+// Fades and lifts [data-reveal] elements in as they scroll into view.
+// The inline script opts in before first paint so nothing flashes; without JS,
+// or with reduced motion, elements are simply visible.
+---
+<script is:inline>
+  if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.documentElement.classList.add('reveal-ready');
+  }
+</script>
+
+<script>
+  const STAGGER = 0.08; // seconds between elements revealed together
+
+  if (document.documentElement.classList.contains('reveal-ready')) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) => entry.target as HTMLElement)
+          .sort((a, b) => {
+            const ra = a.getBoundingClientRect();
+            const rb = b.getBoundingClientRect();
+            return ra.top - rb.top || ra.left - rb.left;
+          })
+          .forEach((el, i) => {
+            el.style.setProperty('--reveal-delay', `${i * STAGGER}s`);
+            el.classList.add('is-revealed');
+            observer.unobserve(el);
+            // Drop the delay once in, so later transitions (e.g. hover) aren't held back
+            el.addEventListener('transitionend', () => el.style.removeProperty('--reveal-delay'), { once: true });
+          });
+      },
+      { rootMargin: '0px 0px -10% 0px', threshold: 0.1 },
+    );
+
+    document.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el));
+  }
+</script>

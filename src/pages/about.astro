@@ -1,32 +1,37 @@
 ---
 import Base from '../layouts/Base.astro';
 import SectionHeader from '../components/SectionHeader.astro';
+
+const experience = ['[Role], [Company]', '[Role], [Company]', '[Role], [Company]'];
+const services = ['Website design', 'Front-end development', 'Design systems'];
 ---
 
 <Base title="About" description="About Damian Simpkins.">
   <section class="section">
-    <div class="container stack-lg">
-      <h1 class="heading-01">About</h1>
-      <p class="lead measure">Placeholder bio. A short introduction to who you are and how you work.</p>
-    </div>
+    <div class="container"><div class="content-col stack">
+      <h1 data-reveal class="intro">
+        Replace with a short first-person introduction: who you are, your background and where you are now.
+      </h1>
+      <p data-reveal class="intro">
+        A second paragraph on the kind of work you do, how you approach it and who you like working with.
+      </p>
+    </div></div>
   </section>
 
-  <section class="section" aria-labelledby="background">
+  <section class="section" aria-labelledby="experience">
     <div class="container split">
-      <SectionHeader number="01" label="Background" id="background" />
-      <div class="prose">
-        <p>Replace with a few paragraphs about your background, the studios and clients you have worked with, and what you care about in your work.</p>
-      </div>
+      <SectionHeader label="Experience" id="experience" />
+      <ul class="plain-list">
+        {experience.map((item) => <li data-reveal>{item}</li>)}
+      </ul>
     </div>
   </section>
 
   <section class="section" aria-labelledby="services">
     <div class="container split">
-      <SectionHeader number="02" label="Services" id="services" />
-      <ul class="prose">
-        <li>Website design</li>
-        <li>Front-end development</li>
-        <li>Design systems</li>
+      <SectionHeader label="Services" id="services" />
+      <ul class="plain-list plain-list--columns">
+        {services.map((item) => <li data-reveal>{item}</li>)}
       </ul>
     </div>
   </section>

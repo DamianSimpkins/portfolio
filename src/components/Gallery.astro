@@ -1,0 +1,19 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+type Item = CollectionEntry<'projects'>['data']['galleryTop'][number];
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="gallery">
+  {items.map(({ src, alt, layout }) => (
+    <figure class={`gallery__item gallery__item--${layout}`} data-reveal>
+      <img src={src} alt={alt} loading="lazy" decoding="async" />
+    </figure>
+  ))}
+</div>

@@ -1,14 +1,10 @@
 ---
 interface Props {
-  number?: string;
   label: string;
   id?: string;
 }
 
-const { number, label, id } = Astro.props;
+const { label, id } = Astro.props;
 ---
 
-<div class="section-header">
-  {number && <span class="meta">{number}</span>}
-  <h2 class="meta section-header__label" id={id}>{label}</h2>
-</div>
+<h2 class="meta section-header" id={id} data-reveal>{label}</h2>

@@ -1,0 +1,129 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  projects: CollectionEntry<'projects'>[];
+}
+
+const { projects } = Astro.props;
+---
+
+<div class="project-list" data-project-list>
+  <ul class="project-list__items" role="list">
+    {projects.map(({ id, data }) => (
+      <li data-reveal>
+        <a class="project-list__row" href={`/work/${id}`} data-id={id}>
+          <span class="heading-04 project-list__title">{data.title}</span>
+          <span class="body-sm muted project-list__client">{data.client}</span>
+          <span class="meta project-list__role">{data.role.join(', ')}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+  <div class="project-list__preview" aria-hidden="true">
+    <div class="project-list__frame">
+      {projects.map(({ id, data }) => data.cover && <img src={data.cover} alt="" data-id={id} />)}
+    </div>
+  </div>
+</div>
+
+<script>
+  // Preview in the label column, level with the hovered row. It springs between rows,
+  // leaning with its speed, and each new image wipes in from the direction of travel.
+  // Wide pointer devices only (the column doesn't exist on narrow screens).
+  const enabled = matchMedia('(hover: hover) and (pointer: fine) and (min-width: 48rem)');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+  // Heavily damped spring: glides into place without overshoot
+  const STIFFNESS = 0.06;
+  const DAMPING = 0.62;
+  // How quickly the lean follows velocity; lower is smoother
+  const LEAN_SMOOTHING = 0.12;
+  const ease = 'cubic-bezier(0.22, 1, 0.36, 1)';
+  const clamp = (value: number, max: number) => Math.max(-max, Math.min(max, value));
+
+  document.querySelectorAll<HTMLElement>('[data-project-list]').forEach((list) => {
+    const preview = list.querySelector<HTMLElement>('.project-list__preview')!;
+    const frame = preview.querySelector<HTMLElement>('.project-list__frame')!;
+    const images = [...preview.querySelectorAll<HTMLImageElement>('img')];
+    const rows = [...list.querySelectorAll<HTMLElement>('.project-list__row')];
+
+    let pos = 0;
+    let vel = 0;
+    let target = 0;
+    let lean = 0;
+    let frameId = 0;
+    let activeIndex = -1;
+
+    const render = () => {
+      const tilt = reduce.matches ? 0 : 1;
+      preview.style.transform =
+        `translate3d(0, ${pos}px, 0) perspective(800px) rotateX(${clamp(-lean * 0.3, 8) * tilt}deg)`;
+      frame.style.transform = tilt ? `translate3d(0, ${clamp(-lean * 0.5, 16)}px, 0) scale(1.1)` : '';
+    };
+
+    const tick = () => {
+      vel = (vel + (target - pos) * STIFFNESS) * DAMPING;
+      pos += vel;
+      lean += (vel - lean) * LEAN_SMOOTHING;
+      render();
+      const settled = Math.abs(target - pos) < 0.1 && Math.abs(lean) < 0.05;
+      frameId = settled ? 0 : requestAnimationFrame(tick);
+    };
+
+    const show = (index: number, event: PointerEvent) => {
+      const row = rows[index];
+      const next = images.find((img) => img.dataset.id === row.dataset.id);
+      if (!next) return hide();
+
+      const entering = activeIndex === -1;
+      // Entering the list: direction from which half of the row the cursor came in on
+      const rect = row.getBoundingClientRect();
+      const down = entering ? event.clientY < rect.top + rect.height / 2 : index > activeIndex;
+      const prev = entering ? undefined : images.find((img) => img.classList.contains('is-active'));
+      activeIndex = index;
+
+      target = row.offsetTop;
+      if (entering || reduce.matches) {
+        pos = target;
+        vel = lean = 0;
+        render();
+      } else if (!frameId) {
+        frameId = requestAnimationFrame(tick);
+      }
+
+      if (prev === next) return;
+      images.forEach((img) => img.classList.remove('is-active', 'is-prev'));
+      next.getAnimations().forEach((animation) => animation.cancel());
+      next.classList.add('is-active');
+      preview.classList.add('is-visible');
+      if (reduce.matches) return;
+
+      next.animate(
+        [
+          { clipPath: down ? 'inset(100% 0 0 0)' : 'inset(0 0 100% 0)', transform: `translateY(${down ? 10 : -10}%) scale(1.1)` },
+          { clipPath: 'inset(0 0 0 0)', transform: 'none' },
+        ],
+        { duration: 800, easing: ease },
+      );
+      if (prev) {
+        prev.classList.add('is-prev');
+        prev.animate(
+          [{ transform: 'none' }, { transform: `translateY(${down ? -8 : 8}%)` }],
+          { duration: 800, easing: ease, fill: 'forwards' },
+        );
+      }
+    };
+
+    const hide = () => {
+      activeIndex = -1;
+      preview.classList.remove('is-visible');
+    };
+
+    rows.forEach((row, index) => {
+      row.addEventListener('pointerenter', (event) => enabled.matches && show(index, event));
+    });
+
+    list.addEventListener('pointerleave', hide);
+  });
+</script>

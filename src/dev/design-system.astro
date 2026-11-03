@@ -1,6 +1,5 @@
 ---
 import Base from '../layouts/Base.astro';
-import Button from '../components/Button.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 
 // Dev-only reference page.
@@ -15,6 +14,7 @@ const type = [
   { cls: 'heading-03', token: '--text-2xl' },
   { cls: 'heading-04', token: '--text-xl' },
   { cls: 'heading-05', token: '--text-lg' },
+  { cls: 'intro', token: '--text-xl' },
   { cls: 'lead', token: '--text-md' },
   { cls: 'body', token: '--text-base' },
   { cls: 'body-sm', token: '--text-sm' },
@@ -35,7 +35,7 @@ const spaces = Array.from({ length: 10 }, (_, i) => `--space-${i + 1}`);
 
   <section class="section" aria-labelledby="ds-type">
     <div class="container">
-      <SectionHeader number="01" label="Type" id="ds-type" />
+      <SectionHeader label="Type" id="ds-type" />
       {type.map(({ cls, token }) => (
         <div class="type-specimen">
           <p class="token">.{cls} · --{cls} · {token}</p>
@@ -47,7 +47,7 @@ const spaces = Array.from({ length: 10 }, (_, i) => `--space-${i + 1}`);
 
   <section class="section" aria-labelledby="ds-colour">
     <div class="container">
-      <SectionHeader number="02" label="Colour" id="ds-colour" />
+      <SectionHeader label="Colour" id="ds-colour" />
       <div class="swatches">
         {colors.map((name) => (
           <div>
@@ -61,7 +61,7 @@ const spaces = Array.from({ length: 10 }, (_, i) => `--space-${i + 1}`);
 
   <section class="section" aria-labelledby="ds-space">
     <div class="container">
-      <SectionHeader number="03" label="Spacing" id="ds-space" />
+      <SectionHeader label="Spacing" id="ds-space" />
       <div class="stack-sm">
         {spaces.map((token) => (
           <div class="space-row">
@@ -73,13 +73,4 @@ const spaces = Array.from({ length: 10 }, (_, i) => `--space-${i + 1}`);
     </div>
   </section>
 
-  <section class="section" aria-labelledby="ds-components">
-    <div class="container">
-      <SectionHeader number="04" label="Components" id="ds-components" />
-      <p class="cluster">
-        <Button href="#">Primary</Button>
-        <Button href="#" variant="secondary">Secondary</Button>
-      </p>
-    </div>
-  </section>
 </Base>
