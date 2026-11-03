@@ -1,0 +1,85 @@
+---
+import Base from '../layouts/Base.astro';
+import Button from '../components/Button.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+
+// Dev-only reference page.
+if (import.meta.env.PROD) {
+  return new Response(null, { status: 404 });
+}
+
+const type = [
+  { cls: 'display', token: '--text-5xl' },
+  { cls: 'heading-01', token: '--text-4xl' },
+  { cls: 'heading-02', token: '--text-3xl' },
+  { cls: 'heading-03', token: '--text-2xl' },
+  { cls: 'heading-04', token: '--text-xl' },
+  { cls: 'heading-05', token: '--text-lg' },
+  { cls: 'lead', token: '--text-md' },
+  { cls: 'body', token: '--text-base' },
+  { cls: 'body-sm', token: '--text-sm' },
+  { cls: 'meta', token: '--text-xs' },
+];
+
+const colors = ['bg', 'surface', 'text', 'text-muted', 'border', 'accent', 'accent-contrast'];
+const spaces = Array.from({ length: 10 }, (_, i) => `--space-${i + 1}`);
+---
+
+<Base title="Design system">
+  <section class="section">
+    <div class="container stack-lg">
+      <h1 class="heading-01">Design system</h1>
+      <p class="lead measure">Raw scale → semantic aliases → utility classes. Dev only.</p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="ds-type">
+    <div class="container">
+      <SectionHeader number="01" label="Type" id="ds-type" />
+      {type.map(({ cls, token }) => (
+        <div class="type-specimen">
+          <p class="token">.{cls} · --{cls} · {token}</p>
+          <p class={cls}>The quick brown fox</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="ds-colour">
+    <div class="container">
+      <SectionHeader number="02" label="Colour" id="ds-colour" />
+      <div class="swatches">
+        {colors.map((name) => (
+          <div>
+            <div class="swatch__chip" style={`background: var(--color-${name})`}></div>
+            <p class="token">--color-{name}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="ds-space">
+    <div class="container">
+      <SectionHeader number="03" label="Spacing" id="ds-space" />
+      <div class="stack-sm">
+        {spaces.map((token) => (
+          <div class="space-row">
+            <p class="token">{token}</p>
+            <div class="space-bar" style={`width: var(${token})`}></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="ds-components">
+    <div class="container">
+      <SectionHeader number="04" label="Components" id="ds-components" />
+      <p class="cluster">
+        <Button href="#">Primary</Button>
+        <Button href="#" variant="secondary">Secondary</Button>
+      </p>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,29 @@
+---
+interface Props {
+  site: string;
+}
+
+const { site } = Astro.props;
+const links = [
+  { href: '/work', label: 'Work' },
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+];
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
+---
+
+<header class="nav">
+  <div class="container nav__inner">
+    <a class="nav__brand" href="/">{site}</a>
+    <nav aria-label="Main">
+      <ul class="nav__links body-sm">
+        {links.map(({ href, label }) => (
+          <li>
+            <a href={href} aria-current={isCurrent(href) ? 'page' : undefined}>{label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>

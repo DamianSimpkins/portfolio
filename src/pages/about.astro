@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+---
+
+<Base title="About" description="About Damian Simpkins.">
+  <section class="section">
+    <div class="container stack-lg">
+      <h1 class="heading-01">About</h1>
+      <p class="lead measure">Placeholder bio. A short introduction to who you are and how you work.</p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="background">
+    <div class="container split">
+      <SectionHeader number="01" label="Background" id="background" />
+      <div class="prose">
+        <p>Replace with a few paragraphs about your background, the studios and clients you have worked with, and what you care about in your work.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="services">
+    <div class="container split">
+      <SectionHeader number="02" label="Services" id="services" />
+      <ul class="prose">
+        <li>Website design</li>
+        <li>Front-end development</li>
+        <li>Design systems</li>
+      </ul>
+    </div>
+  </section>
+</Base>

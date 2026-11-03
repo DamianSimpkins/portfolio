@@ -1,0 +1,18 @@
+---
+interface Props {
+  site: string;
+}
+
+const { site } = Astro.props;
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container footer__inner body-sm">
+    <p class="muted">© {year} {site}</p>
+    <ul class="footer__links">
+      <li><a href="mailto:damian@webcoda.com.au">Email</a></li>
+      <li><a href="https://www.linkedin.com/">LinkedIn</a></li>
+    </ul>
+  </div>
+</footer>

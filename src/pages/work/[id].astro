@@ -1,0 +1,42 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Button from '../../components/Button.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects.map((project) => ({ params: { id: project.id }, props: { project } }));
+}
+
+const { project } = Astro.props;
+const { title, client, year, summary, role, url } = project.data;
+const { Content } = await render(project);
+---
+
+<Base title={title} description={summary}>
+  <section class="section">
+    <div class="container stack-lg">
+      <p class="meta"><a href="/work">Work</a> / {client}</p>
+      <h1 class="heading-01 measure">{title}</h1>
+      <p class="lead measure">{summary}</p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="details">
+    <div class="container split">
+      <div class="stack">
+        <SectionHeader number="01" label="Details" id="details" />
+        <dl class="facts body-sm">
+          <div><dt class="meta">Client</dt><dd>{client}</dd></div>
+          <div><dt class="meta">Year</dt><dd>{year}</dd></div>
+          {role.length > 0 && <div><dt class="meta">Role</dt><dd>{role.join(', ')}</dd></div>}
+        </dl>
+        {url && <p><Button href={url} variant="secondary">Visit site</Button></p>}
+      </div>
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+  </section>
+</Base>

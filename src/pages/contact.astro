@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+import Button from '../components/Button.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+---
+
+<Base title="Contact" description="Get in touch.">
+  <section class="section">
+    <div class="container stack-lg">
+      <h1 class="heading-01">Contact</h1>
+      <p class="lead measure">Placeholder line about what kind of work you are open to.</p>
+      <p><Button href="mailto:damian@webcoda.com.au">Send an email</Button></p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="elsewhere">
+    <div class="container split">
+      <SectionHeader number="01" label="Elsewhere" id="elsewhere" />
+      <dl class="facts body-sm">
+        <div><dt class="meta">Email</dt><dd><a href="mailto:damian@webcoda.com.au">damian@webcoda.com.au</a></dd></div>
+        <div><dt class="meta">LinkedIn</dt><dd><a href="https://www.linkedin.com/">Add profile link</a></dd></div>
+      </dl>
+    </div>
+  </section>
+</Base>
