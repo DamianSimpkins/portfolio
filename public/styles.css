@@ -72,7 +72,8 @@
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 
   /* Colour */
-  --color-bg: #ffffff;
+  --color-page: #ffffff;
+  --color-bg: var(--color-page);
   --color-surface: #ffffff;
   --color-text: #141414;
   --color-text-muted: #5c5c58;
@@ -994,6 +995,9 @@ html[data-returning]::view-transition-new(root) {
   .gallery__section--multi {
     display: flex;
     overflow-x: auto;
+    /* Horizontal only: left as auto it also scrolls vertically (by a few px), which catches
+       up-and-down swipes that start over a row */
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
     scroll-padding-inline: var(--gallery-pad);
     overscroll-behavior-x: contain;
@@ -1069,6 +1073,9 @@ html[data-returning]::view-transition-new(root) {
   position: fixed;
   inset: 0;
   background: var(--color-bg);
+  /* Fades from this page's colour to the next project's as the hero rises (--p runs 0 to 1), so
+     the colour is already right when that page opens */
+  background: color-mix(in srgb, var(--next-bg) calc(var(--p, 0) * 100%), var(--color-bg));
   opacity: 0;
   pointer-events: none;
 }

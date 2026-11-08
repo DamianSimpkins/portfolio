@@ -53,8 +53,10 @@ const divider = onDark ? 'rgb(255 255 255 / 0.2)' : 'rgb(0 0 0 / 0.12)';
 ---
 
 <Base title={title} description={summary}>
+  {/* In the head, so the page colour is there before the first paint (and the page transition) */}
   {(background || panel) && (
     <Fragment
+      slot="head"
       set:html={`<style>:root{${background ? `--color-bg:${background};--color-border:${divider};` : ''}${onDark ? '--color-text:#ffffff;--color-text-muted:rgb(255 255 255 / 0.65);--color-overlay:rgb(255 255 255 / 0.08);' : ''}${panel ? `--color-overlay:${panel};` : ''}}</style>`}
     />
   )}

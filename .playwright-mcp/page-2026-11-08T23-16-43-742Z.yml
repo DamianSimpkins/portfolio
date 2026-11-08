@@ -1,0 +1,108 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e3]
+  - main [ref=e5]:
+    - link "Close project" [ref=e6] [cursor=pointer]:
+      - /url: /
+    - generic [ref=e9]:
+      - img "GWMWater - Redesign for a regional Victorian water supplier" [ref=e12]
+      - region "Overview" [ref=e13]:
+        - generic [ref=e14]:
+          - heading "GWMWater - Redesign for a regional Victorian water supplier" [level=1] [ref=e15]
+          - generic [ref=e17]:
+            - paragraph [ref=e19]: GWMWater supplies water to communities across the Grampians, Wimmera and Mallee, and its website is where customers pay bills, report faults and check outages. The redesign coincided with GWMWater’s own brand redesign, so I redesigned the experience from the ground up around the new identity, from research and structure through to a responsive interface and a design system that keeps the site consistent and easier to maintain.
+            - generic [ref=e20]:
+              - heading "What I did" [level=2] [ref=e21]
+              - list "What I did" [ref=e22]:
+                - listitem [ref=e23]: Surveys
+                - listitem [ref=e24]: Workshops
+                - listitem [ref=e25]: Personas
+                - listitem [ref=e26]: User journeys
+                - listitem [ref=e27]: Information architecture
+                - listitem [ref=e28]: Wireframes
+                - listitem [ref=e29]: UI design
+                - listitem [ref=e30]: Prototyping
+                - listitem [ref=e31]: Front-end components
+      - region "More project images" [ref=e32]:
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - figure [ref=e36]:
+              - img "Homepage design on desktop" [ref=e37]
+            - figure [ref=e38]:
+              - img "Inner page design on desktop" [ref=e39]
+          - generic [ref=e40]:
+            - figure [ref=e41]:
+              - img "Mobile design, first screen" [ref=e43]
+            - figure [ref=e44]:
+              - img "Mobile design, second screen" [ref=e46]
+            - figure [ref=e47]:
+              - img "Mobile design, third screen" [ref=e49]
+      - region "Persona selector" [ref=e50]:
+        - generic [ref=e52]:
+          - heading "Persona selector" [level=2] [ref=e53]
+          - paragraph [ref=e54]: Discovery showed visitors arrive with very different goals, so a persona selector was added to the homepage to put the most common tasks one tap away. The links are set up for easy editing in the CMS, so the client can keep them in line with their most visited pages. Try it below.
+      - region "More project images" [ref=e55]:
+        - figure [ref=e59]:
+          - iframe [ref=e60]:
+            - generic [ref=f1e3]:
+              - generic [ref=f1e4]:
+                - generic [ref=f1e5]: I'm a
+                - button "resident" [ref=f1e7] [cursor=pointer]
+                - generic [ref=f1e11]: and I want to...
+              - generic [ref=f1e12]:
+                - link "Pay my bill online" [ref=f1e13] [cursor=pointer]:
+                  - /url: "#"
+                - link "Report a fault or leak" [ref=f1e17] [cursor=pointer]:
+                  - /url: "#"
+                - link "Check water restrictions" [ref=f1e21] [cursor=pointer]:
+                  - /url: "#"
+                - link "Set up a new account" [ref=f1e25] [cursor=pointer]:
+                  - /url: "#"
+                - link "Find my nearest service" [ref=f1e29] [cursor=pointer]:
+                  - /url: "#"
+                - link "Learn about water quality" [ref=f1e33] [cursor=pointer]:
+                  - /url: "#"
+      - region "Maps, outages and reporting a fault" [ref=e61]:
+        - generic [ref=e63]:
+          - heading "Maps, outages and reporting a fault" [level=2] [ref=e64]
+          - paragraph [ref=e65]: When something goes wrong, customers want answers quickly, and often from a phone. An interactive outages map centres on their location in one tap and shows what is happening nearby. If nothing is logged, Report a fault is always in reach. On mobile the controls sit within thumb reach, with a list view for anyone who would rather scan than pan.
+      - region "More project images" [ref=e66]:
+        - generic [ref=e68]:
+          - figure [ref=e70]:
+            - img "Outages map on desktop" [ref=e71]
+          - generic [ref=e72]:
+            - figure [ref=e73]:
+              - img "Outages map on mobile, first screen" [ref=e75]
+            - figure [ref=e76]:
+              - img "Outages map on mobile, second screen" [ref=e78]
+            - figure [ref=e79]:
+              - img "Outages map on mobile, third screen" [ref=e81]
+      - region "Interactive components" [ref=e82]:
+        - generic [ref=e84]:
+          - heading "Interactive components" [level=2] [ref=e85]
+          - paragraph [ref=e86]: With the help of Claude Code I was able to build interactive components quickly, and they went live on the site as they are. Each one is production ready and driven by simple data points, so storage levels, trends and charts update dynamically and connect easily to live sources. Hover and scroll to try them below.
+      - region "More project images" [ref=e87]:
+        - generic [ref=e89]:
+          - figure [ref=e91]:
+            - iframe [ref=e92]
+          - figure [ref=e94]:
+            - iframe [ref=e95]
+      - region "Design system" [ref=e96]:
+        - generic [ref=e98]:
+          - heading "Design system" [level=2] [ref=e99]
+          - paragraph [ref=e100]: With the new brand arriving at the same time, a full design system was built in Figma to carry it, from colours and type to buttons, form fields and components, then converted to code as a front-end component library. Storybook documents each component and its states, giving designers and developers one shared reference and keeping the site consistent as it grows.
+      - region "More project images" [ref=e101]:
+        - figure [ref=e105]:
+          - 'img "GWMWater design system: colours, type, buttons, form fields and components" [ref=e106]'
+  - region "Next project" [ref=e107]:
+    - link "Next project Metropolitan Memorial Parks - A website built around care and clarity" [ref=e108] [cursor=pointer]:
+      - /url: /work/metropolitan-memorial-parks
+      - generic [ref=e111]:
+        - generic [ref=e112]: Next project
+        - generic [ref=e113]: Metropolitan Memorial Parks - A website built around care and clarity
+  - generic [ref=e116]:
+    - button "Menu" [ref=e117]
+    - button "Inspect" [ref=e123]
+    - button "Audit" [ref=e127]
+    - button "Settings" [ref=e132]
