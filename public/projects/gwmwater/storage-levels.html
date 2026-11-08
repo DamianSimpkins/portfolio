@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Storage water levels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #ffffff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .water-levels {
+    padding: 80px 40px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  .listing {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 238px;
+    gap: 0;
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  .go .card { animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  .go .card:nth-child(1) { animation-delay: 0.08s; }
+  .go .card:nth-child(2) { animation-delay: 0.18s; }
+  .go .card:nth-child(3) { animation-delay: 0.28s; }
+  .go .card:nth-child(4) { animation-delay: 0.38s; }
+  .go .card:nth-child(5) { animation-delay: 0.48s; }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .icon-wrap {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: #d1effc;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .icon-wrap canvas {
+    position: absolute;
+    inset: 0;
+    width: 200px;
+    height: 200px;
+  }
+
+  .stat-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 800;
+    color: #013364;
+    letter-spacing: -0.02em;
+    pointer-events: none;
+  }
+
+  .card-info {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 238px;
+    text-align: center;
+  }
+
+  .reservoir-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: #013364;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  .trend-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #013364;
+    line-height: 1.75;
+  }
+
+  .trend-row svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+
+  @media (min-width: 992px) {
+    .water-levels { padding-left: 40px; padding-right: 40px; }
+    .listing { flex-wrap: nowrap; gap: 24px; }
+    .card { flex: 1 1 0; min-width: 0; width: auto; max-width: 238px; }
+    .card-info { width: 100%; }
+  }
+
+  /* Narrow screens keep the five levels in one row and scroll sideways */
+  @media (max-width: 991px) {
+    .water-levels { padding: 56px 0; }
+    .listing {
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      gap: 24px;
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      padding: 0 32px;
+      scroll-padding: 0 32px;
+    }
+    .card { flex: 0 0 200px; width: 200px; scroll-snap-align: start; }
+    .card-info { width: 200px; }
+  }
+</style>
+</head>
+<body>
+
+<section class="water-levels">
+  <div class="listing" id="listing"></div>
+</section>
+
+<script>
+const reservoirs = [
+  { name: "Lake Bellfield",         pct: 72, trend:  6, dir: "down" },
+  { name: "Lake Fyans",             pct: 74, trend:  9, dir: "up"   },
+  { name: "Lake Lonsdale",          pct: 15, trend: 12, dir: "down" },
+  { name: "Moora Moora Reservoir",  pct: 41, trend: 36, dir: "up"   },
+];
+
+// Scalloped-top dam silhouette (200 x 198.6)
+const RESERVOIR_PATH = "M 169.09765625 1.9313780372019298 C 172.7316014766693 -0.7293116664576675 177.7053701877594 -0.6410959977844497 181.25 2.1969131856859954 L 187.5 7.200775779444668 L 200 7.200775779444668 L 200 198.60638427734375 L 0 198.60638427734375 L 0 7.200775779444668 L 12.5 7.200775779444668 L 18.75 2.1969131856859954 C 22.294596910476685 -0.6410676655836385 27.268408060073853 -0.7292314719231683 30.90234375 1.9313780372019298 L 31.59765625 2.4624483341700607 C 35.11437678337097 5.03733444787974 39.88558340072632 5.037252572621464 43.40234375 2.4624483341700607 L 44.09765625 1.9313780372019298 C 47.61439061164856 -0.6435311264338328 52.38557291030884 -0.643456694380854 55.90234375 1.9313780372019298 L 56.59765625 2.4624483341700607 C 60.114378929138184 5.037325323950665 64.8855926990509 5.037261936653934 68.40234375 2.4624483341700607 L 69.09765625 1.9313780372019298 C 72.61439657211304 -0.6435212821945677 77.38557767868042 -0.6434670188269125 80.90234375 1.9313780372019298 L 81.59765625 2.4624483341700607 C 85.11438632011414 5.0373154797114 89.88559246063232 5.037272020996596 93.40234375 2.4624483341700607 L 94.09765625 1.9313780372019298 C 97.61439967155457 -0.6435119181620961 102.385582447052 -0.6434754224457973 105.90234375 1.9313780372019298 L 106.59765625 2.4624483341700607 C 110.11438989639282 5.037309717229879 114.88559579849243 5.037280424615481 118.40234375 2.4624483341700607 L 119.09765625 1.9313780372019298 C 122.61440300941467 -0.6435042348534015 127.38558602333069 -0.6434823854443017 130.90234375 1.9313780372019298 L 131.59765625 2.4624483341700607 C 135.1143913269043 5.037299152680424 139.88559913635254 5.037276342857737 143.40234375 2.4624483341700607 L 144.09765625 1.9313780372019298 C 147.61440324783325 -0.643497271854897 152.38558745384216 -0.6434802245137312 155.90234375 1.9313780372019298 L 156.59765625 2.4624483341700607 C 160.114403963089 5.037299152680424 164.88559985160828 5.037280424615481 168.40234375 2.4624483341700607 L 169.09765625 1.9313780372019298 Z";
+
+const C_WATER = '#84d5f7';
+const C_EMPTY = '#d1effc';
+
+const SVG_DOWN = `<svg viewBox="0 0 24 24" fill="none" stroke="#013364" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>`;
+const SVG_UP   = `<svg viewBox="0 0 24 24" fill="none" stroke="#013364" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>`;
+
+const PX  = 200;
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+const SZ  = PX * DPR;
+
+const reservoirPath2D = new Path2D(RESERVOIR_PATH);
+const PATH_H = 198.60638;
+const PATH_W = 200;
+
+function easeOutExpo(t) { return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t); }
+
+const listing  = document.getElementById('listing');
+const canvases = [];
+const statEls  = [];
+
+reservoirs.forEach((r) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'icon-wrap';
+
+  const canvas = document.createElement('canvas');
+  canvas.width  = SZ;
+  canvas.height = SZ;
+  canvas.style.width  = PX + 'px';
+  canvas.style.height = PX + 'px';
+  wrap.appendChild(canvas);
+
+  const statEl = document.createElement('div');
+  statEl.className = 'stat-num';
+  statEl.textContent = '0%';
+  wrap.appendChild(statEl);
+
+  const info = document.createElement('div');
+  info.className = 'card-info';
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'reservoir-name';
+  nameEl.textContent = r.name;
+
+  const trendEl = document.createElement('div');
+  trendEl.className = 'trend-row';
+  trendEl.innerHTML = (r.dir === 'up' ? SVG_UP : SVG_DOWN)
+    + `<span>${r.trend}% from last year</span>`;
+
+  info.appendChild(nameEl);
+  info.appendChild(trendEl);
+
+  card.appendChild(wrap);
+  card.appendChild(info);
+  listing.appendChild(card);
+
+  canvases.push(canvas);
+  statEls.push(statEl);
+});
+
+// Ripples spawn when the cursor crosses a tank's water surface
+const cardStates = reservoirs.map(() => ({
+  ripples:   [],
+  mouseX:    -1,
+  mouseY:    -1,
+  prevDist:  null,
+  cooldown:  0,
+}));
+
+let globalMouseX = -999, globalMouseY = -999;
+let globalVX = 0, globalVY = 0, lastGX = 0, lastGY = 0;
+
+document.addEventListener('mousemove', (e) => {
+  globalVX = e.clientX - lastGX;
+  globalVY = e.clientY - lastGY;
+  lastGX = globalMouseX; lastGY = globalMouseY;
+  globalMouseX = e.clientX;
+  globalMouseY = e.clientY;
+
+  canvases.forEach((cv, i) => {
+    const rect  = cv.getBoundingClientRect();
+    const state = cardStates[i];
+    state.mouseX = globalMouseX - rect.left;
+    state.mouseY = globalMouseY - rect.top;
+  });
+});
+
+function spawnRipple(i, x, strength) {
+  const state = cardStates[i];
+  if (state.ripples.length >= 6) state.ripples.shift();
+  state.ripples.push({ x, age: 0, amp: Math.min(strength, 18) });
+}
+
+// Damped outward wave: decays with time and distance
+function rippleDisplace(rx, age, amp, xQuery) {
+  const dx      = xQuery - rx;
+  const spread  = 28 + age * 60;
+  const decay   = Math.exp(-age * 3.5);
+  const spatial = Math.exp(-(dx * dx) / (2 * spread * spread));
+  const phase   = Math.abs(dx) / 12 - age * 14;
+  return amp * decay * spatial * Math.sin(phase);
+}
+
+function drawTank(canvas, progress, t, dt) {
+  const ctx = canvas.getContext('2d');
+  const idx = canvases.indexOf(canvas);
+  const pct = reservoirs[idx].pct / 100;
+  const fill = progress * pct;
+  const state = cardStates[idx];
+
+  for (const rip of state.ripples) rip.age += dt;
+  state.ripples = state.ripples.filter(r => r.age < 1.8);
+  if (state.cooldown > 0) state.cooldown--;
+
+  ctx.save();
+  ctx.scale(DPR, DPR);
+
+  ctx.beginPath();
+  ctx.arc(PX / 2, PX / 2, PX / 2, 0, Math.PI * 2);
+  ctx.clip();
+
+  ctx.fillStyle = C_EMPTY;
+  ctx.fillRect(0, 0, PX, PX);
+
+  if (fill > 0) {
+    const offsetY   = (PX - PATH_H) / 2;
+    const waterMidY = PATH_H * (1 - fill);
+
+    const amp   = 2.4;
+    const freq1 = 0.055, freq2 = 0.090;
+    const spd1  = 1.5,   spd2  = 2.4;
+
+    ctx.save();
+    ctx.translate(0, offsetY);
+
+    ctx.save();
+    ctx.clip(reservoirPath2D);
+
+    ctx.beginPath();
+    ctx.moveTo(0, PATH_H + 2);
+
+    let surfaceAtMouse = null;
+
+    for (let x = 0; x <= PATH_W; x++) {
+      const baseY = waterMidY
+        + Math.sin(x * freq1 + t * spd1) * amp
+        + Math.sin(x * freq2 - t * spd2 + 1.4) * (amp * 0.45);
+
+      let rippleY = 0;
+      for (const rip of state.ripples) {
+        rippleY += rippleDisplace(rip.x, rip.age, rip.amp, x);
+      }
+
+      const y = baseY + rippleY;
+
+      if (Math.abs(x - state.mouseX) < 1.5) {
+        surfaceAtMouse = y + offsetY;
+      }
+
+      ctx.lineTo(x, y);
+    }
+
+    ctx.lineTo(PATH_W, PATH_H + 2);
+    ctx.closePath();
+    ctx.fillStyle = C_WATER;
+    ctx.fill();
+    ctx.restore();
+    ctx.restore();
+
+    // Only trigger when the cursor moves into the surface, not when the surface moves to the cursor
+    if (surfaceAtMouse !== null && state.mouseX >= 0 && state.mouseX <= PX) {
+      const distToSurface = state.mouseY - surfaceAtMouse;
+      const cursorMoved = Math.abs(globalVX) > 1.5 || Math.abs(globalVY) > 1.5;
+
+      const crossingDown = state.prevDist !== null
+        && state.prevDist < -2
+        && distToSurface >= -4;
+
+      const crossingUp = state.prevDist !== null
+        && state.prevDist > 2
+        && distToSurface <= 4;
+
+      if ((crossingDown || crossingUp) && cursorMoved && state.cooldown === 0) {
+        const strength = 6 + Math.abs(globalVY) * 1.2 + Math.abs(globalVX) * 0.4;
+        spawnRipple(idx, state.mouseX, strength);
+        state.cooldown = 18;
+      }
+
+      state.prevDist = distToSurface;
+    } else {
+      state.prevDist = null;
+    }
+  }
+
+  ctx.restore();
+}
+
+const DURATION = 1.8;
+const STAGGER  = 0.13;
+let   t0 = null, lastT = null;
+
+function frame(ts) {
+  if (!t0) { t0 = ts; lastT = ts; }
+  const elapsed = (ts - t0)    / 1000;
+  const dt      = (ts - lastT) / 1000;
+  lastT = ts;
+
+  canvases.forEach((cv, i) => {
+    const cardT  = Math.max(0, elapsed - i * STAGGER);
+    const prog   = easeOutExpo(Math.min(1, cardT / DURATION));
+    drawTank(cv, prog, elapsed, dt);
+    statEls[i].textContent = Math.round(prog * reservoirs[i].pct) + '%';
+  });
+
+  requestAnimationFrame(frame);
+}
+
+// Start when the row scrolls into view
+new IntersectionObserver((entries, io) => {
+  if (!entries[0].isIntersecting) return;
+  io.disconnect();
+  listing.classList.add('go');
+  requestAnimationFrame(frame);
+}, { threshold: 0.35 }).observe(listing);
+</script>
+</body>
+</html>

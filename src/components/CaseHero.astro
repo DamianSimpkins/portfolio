@@ -1,0 +1,115 @@
+---
+interface Props {
+  src: string;
+  alt?: string;
+  // Project id, so the list can morph the image back into the right row
+  id: string;
+}
+
+const { src, alt = '', id } = Astro.props;
+---
+
+<script is:inline>
+  // The entrance only plays when arriving from the home list (which sets this flag on click);
+  // arriving from another project, the hero is already in place. Marks the page, since the hero
+  // isn't parsed yet when this runs; it runs before the hero paints.
+  var enter = false;
+  var morph = false;
+  try {
+    enter = !!sessionStorage.getItem('heroEnter');
+    sessionStorage.removeItem('heroEnter');
+    morph = !!sessionStorage.getItem('heroMorph');
+    sessionStorage.removeItem('heroMorph');
+  } catch {}
+  if (!enter) document.documentElement.setAttribute('data-no-hero-enter', '');
+  // Arriving by the thumbnail growing into the hero: the page waits under it (see styles.css)
+  if (morph) document.documentElement.setAttribute('data-hero-morph', '');
+</script>
+<div class="case-hero" data-case-hero data-project-id={id}>
+  <div class="case-hero__media">
+    <img src={src} alt={alt} />
+  </div>
+</div>
+
+<script>
+  // Pulling up past the top commits to leaving. The page goes straight back to the list and
+  // the hero zooms down into that project's row in one continuous page transition; the quick
+  // press-in below only gives instant feedback while the next page loads.
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  // How far you pull past the top before it commits
+  const START_DISTANCE = 24;
+
+  document.querySelectorAll<HTMLElement>('[data-case-hero]').forEach((hero) => {
+    const media = hero.querySelector<HTMLElement>('.case-hero__media')!;
+    let pull = 0;
+    let leaving = false;
+    let resetTimer = 0;
+    let touchStart = 0;
+
+    const leave = () => {
+      if (leaving) return;
+      leaving = true;
+      try {
+        sessionStorage.setItem('returnProject', hero.dataset.projectId ?? '');
+      } catch {}
+      if (!reduce.matches) {
+        media.style.transition = 'transform 0.3s var(--ease-out)';
+        media.style.transform = 'scale(0.94)';
+      }
+      location.href = '/#work';
+    };
+
+    // Small, brief nudges at the top don't count; the pull has to be deliberate
+    const add = (amount: number) => {
+      pull += amount;
+      if (pull >= START_DISTANCE) return leave();
+      clearTimeout(resetTimer);
+      resetTimer = window.setTimeout(() => (pull = 0), 200);
+    };
+
+    addEventListener(
+      'wheel',
+      (event) => {
+        if (scrollY <= 0 && event.deltaY < 0) add(-event.deltaY);
+      },
+      { passive: true },
+    );
+    addEventListener('touchstart', (event) => (touchStart = event.touches[0].clientY), { passive: true });
+    addEventListener(
+      'touchmove',
+      (event) => {
+        const dy = event.touches[0].clientY - touchStart;
+        if (scrollY <= 0 && dy > 0) add(dy - pull);
+      },
+      { passive: true },
+    );
+
+    // Closing from further down the page: the hero sits pinned behind the content, so leaving
+    // straight away would make it appear out of nowhere. Scroll back up first (the content
+    // lifts away and reveals it), then let the page transition shrink it into its row.
+    const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const scrollToTop = (done: () => void) => {
+      const from = scrollY;
+      const duration = Math.min(900, Math.max(450, from * 0.3));
+      const start = performance.now();
+      const step = (now: number) => {
+        const t = Math.min(1, (now - start) / duration);
+        scrollTo(0, from * (1 - ease(t)));
+        if (t < 1) requestAnimationFrame(step);
+        else done();
+      };
+      requestAnimationFrame(step);
+    };
+
+    const back = document.querySelector<HTMLAnchorElement>('[data-back]');
+    back?.addEventListener('click', (event) => {
+      try {
+        sessionStorage.setItem('returnProject', hero.dataset.projectId ?? '');
+      } catch {}
+      if (leaving || reduce.matches || scrollY < 2) return;
+      event.preventDefault();
+      leaving = true;
+      scrollToTop(() => (location.href = back.href));
+    });
+  });
+</script>

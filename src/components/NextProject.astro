@@ -1,0 +1,144 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { title, cover } = project.data;
+---
+
+<section class="next-hero" aria-label="Next project" data-next-project>
+  <div class="next-hero__backdrop" aria-hidden="true"></div>
+  <a class="next-hero__link" href={`/work/${project.id}`}>
+    <div class="next-hero__layer">
+      {cover && (
+        <div class="next-hero__media">
+          <img src={cover} alt="" />
+        </div>
+      )}
+      <div class="next-hero__scrim"></div>
+      <div class="next-hero__text">
+        <span class="body-sm">Next project</span>
+        <span class="intro">{title}</span>
+      </div>
+    </div>
+  </a>
+</section>
+
+<script>
+  // The next project's hero peeks in below the footer. Scroll on at the bottom (or click it)
+  // and it rises to fill the screen by itself, then opens that project, whose hero is
+  // already in exactly that place.
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  // How far you scroll past the end before it commits
+  const START_DISTANCE = 220;
+  // How much of the rise the hero shows while you are still building up to it
+  const HINT = 0.1;
+  const RISE_DURATION = 900;
+  // Soft in and out
+  const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+  document.querySelectorAll<HTMLElement>('[data-next-project]').forEach((section) => {
+    const link = section.querySelector<HTMLAnchorElement>('.next-hero__link')!;
+    const layer = section.querySelector<HTMLElement>('.next-hero__layer')!;
+    const media = section.querySelector<HTMLElement>('.next-hero__media');
+    const text = section.querySelector<HTMLElement>('.next-hero__text')!;
+    const scrim = section.querySelector<HTMLElement>('.next-hero__scrim')!;
+    const backdrop = section.querySelector<HTMLElement>('.next-hero__backdrop')!;
+    if (!media) return;
+
+    let committed = false;
+    let current = 0;
+    let pull = 0;
+    let resetTimer = 0;
+    let touchStart = 0;
+
+    const atBottom = () => scrollY + innerHeight >= document.documentElement.scrollHeight - 2;
+
+    // Progress 0 to 1: how far the hero has risen from its peek to the top of the screen
+    const render = (progress: number) => {
+      current = progress;
+      const peek = section.offsetHeight;
+      const rise = (innerHeight - peek) * progress;
+      // Grow upward by the same amount it moves up, so the bottom edge stays at the page end
+      layer.style.height = `${peek + rise}px`;
+      layer.style.transform = `translate3d(0, ${-rise}px, 0)`;
+      text.style.opacity = String(Math.max(0, 1 - progress * 3));
+      scrim.style.opacity = String(Math.max(0, 1 - progress * 3));
+      // Fills the screen behind the rising hero, so on tall windows (where the hero is shorter
+      // than the screen) the old page doesn't show beneath it
+      backdrop.style.opacity = String(Math.min(1, progress * 3));
+      // Blocks what is under it once it's showing, so the header can tell it is covering that
+      backdrop.style.pointerEvents = progress > 0.05 ? 'auto' : 'none';
+      dispatchEvent(new Event('header-tone'));
+    };
+
+    const commit = () => {
+      if (committed) return;
+      committed = true;
+      clearTimeout(resetTimer);
+      layer.style.transition = 'none';
+      const go = () => {
+        // Only one element may carry the name, so the hero on this page gives it up
+        document.querySelectorAll<HTMLElement>('.case-hero__media').forEach((hero) => {
+          hero.style.viewTransitionName = 'none';
+        });
+        media.style.viewTransitionName = 'project-hero';
+        location.href = link.href;
+      };
+      if (reduce.matches) return go();
+
+      const from = current;
+      const start = performance.now();
+      const step = (now: number) => {
+        const t = Math.min(1, (now - start) / RISE_DURATION);
+        // Carries on from wherever the hero is now (the hint lift, or rest), so no snap
+        render(from + (1 - from) * ease(t));
+        if (t < 1) requestAnimationFrame(step);
+        else go();
+      };
+      requestAnimationFrame(step);
+    };
+
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      commit();
+    });
+
+    // Small, brief nudges at the bottom don't count; the scroll has to be deliberate
+    const add = (amount: number) => {
+      if (committed) return;
+      pull += amount;
+      if (pull >= START_DISTANCE) return commit();
+      // Lift a little as you push, so it's clear more is coming
+      layer.style.transition = 'none';
+      render((pull / START_DISTANCE) * HINT);
+      clearTimeout(resetTimer);
+      resetTimer = window.setTimeout(() => {
+        // Stopped short: settle back down
+        pull = 0;
+        layer.style.transition = 'height 0.6s var(--ease-out), transform 0.6s var(--ease-out)';
+        render(0);
+      }, 300);
+    };
+
+    addEventListener(
+      'wheel',
+      (event) => {
+        if (atBottom() && event.deltaY > 0) add(event.deltaY);
+      },
+      { passive: true },
+    );
+    addEventListener('touchstart', (event) => (touchStart = event.touches[0].clientY), { passive: true });
+    addEventListener(
+      'touchmove',
+      (event) => {
+        const dy = touchStart - event.touches[0].clientY;
+        if (atBottom() && dy > 0) add(dy - pull);
+      },
+      { passive: true },
+    );
+  });
+</script>

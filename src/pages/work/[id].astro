@@ -2,6 +2,8 @@
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import SectionHeader from '../../components/SectionHeader.astro';
+import CaseHero from '../../components/CaseHero.astro';
+import NextProject from '../../components/NextProject.astro';
 import Gallery from '../../components/Gallery.astro';
 
 export async function getStaticPaths() {
@@ -13,36 +15,74 @@ export async function getStaticPaths() {
 }
 
 const { project, next } = Astro.props;
-const { title, client, year, summary, type, url, process, services, galleryTop, galleryBottom } = project.data;
+const { title, cover, summary, services, sections, background, panel, galleryTop, galleryBottom } = project.data;
 const { Content } = await render(project);
+
+// Sections with `before` sit inside the second gallery, splitting it at that image
+const gap = sections.filter((section) => section.before === undefined);
+const inline = sections.filter((section) => section.before !== undefined);
+const bottomParts = galleryBottom.length
+  ? [...new Set(inline.map((section) => section.before!))]
+      .sort((a, b) => a - b)
+      .reduce<{ start: number; end?: number; section?: (typeof sections)[number] }[]>(
+        (parts, at) => {
+          parts[parts.length - 1].end = at;
+          parts.push({ start: at, section: inline.find((section) => section.before === at) });
+          return parts;
+        },
+        [{ start: 0 }],
+      )
+  : [];
+
+// Light or dark, worked out from the project's page colour
+const rgb = (hex: string): [number, number, number] | undefined => {
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? [...h].map((c) => c + c).join('') : h;
+  if (!/^[0-9a-f]{6}$/i.test(full)) return undefined;
+  return [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16)) as [number, number, number];
+};
+const luminance = (hex: string) => {
+  const c = rgb(hex);
+  if (!c) return 1;
+  const [r, g, b] = c.map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const onDark = !!background && luminance(background) < 0.18;
+// Dividers are black or white at low opacity, and text switches to white on a dark page colour
+const divider = onDark ? 'rgb(255 255 255 / 0.2)' : 'rgb(0 0 0 / 0.12)';
 ---
 
 <Base title={title} description={summary}>
+  {(background || panel) && (
+    <Fragment
+      set:html={`<style>:root{${background ? `--color-bg:${background};--color-border:${divider};` : ''}${onDark ? '--color-text:#ffffff;--color-text-muted:rgb(255 255 255 / 0.65);--color-overlay:rgb(255 255 255 / 0.08);' : ''}${panel ? `--color-overlay:${panel};` : ''}}</style>`}
+    />
+  )}
+  <a class="back-link" href="/#work" data-back={project.id} aria-label="Close project">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke-width="2" stroke-linecap="square" aria-hidden="true">
+      <path d="M5 5l14 14M19 5L5 19" />
+    </svg>
+  </a>
   <div class="case">
-    <section class="section">
-      <h1 class="visually-hidden">{title}</h1>
-      <div class="container split meta-strip">
-        <dl>
-          <div data-reveal><dt class="meta">Client</dt><dd>{client}</dd></div>
-        </dl>
-        <dl class="meta-strip__details">
-          {type && <div data-reveal><dt class="meta">Project</dt><dd>{type}</dd></div>}
-          <div data-reveal><dt class="meta">Year</dt><dd>{year}</dd></div>
-          {url && (
-            <div data-reveal>
-              <dt class="meta">Website</dt>
-              <dd><a class="subtle-link" href={url}>{new URL(url).hostname.replace(/^www\./, '')}</a></dd>
-            </div>
-          )}
-        </dl>
-      </div>
-    </section>
+    {cover && <CaseHero src={cover} alt={title} id={project.id} />}
 
-    <section class="section" aria-labelledby="overview">
-      <div class="container split">
-        <SectionHeader label="Overview" id="overview" />
-        <div class="intro stack" data-reveal>
-          <Content />
+    <section class="section" aria-label="Overview">
+      <div class="container">
+        <h1 class="heading-04 case-title" data-reveal>{title}</h1>
+        <div class="split">
+          <div class="stack-lg">
+            <div class="body stack-sm" data-reveal>
+              <Content />
+            </div>
+            {services.length > 0 && (
+              <div class="stack-sm">
+                <SectionHeader label="What I did" id="services" />
+                <ul class="plain-list plain-list--columns services-list" style="--columns: 3" aria-labelledby="services">
+                  {services.map((service) => <li data-reveal>{service}</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
@@ -55,37 +95,36 @@ const { Content } = await render(project);
       </section>
     )}
 
-    {(process || services.length > 0) && (
-      <section class="section" aria-labelledby="what-i-did">
+    {gap.map(({ label, text }) => (
+      <section class="section" aria-label={label}>
         <div class="container split">
-          <SectionHeader label="What I did" id="what-i-did" />
-          <div class="stack-lg">
-            {process && <p class="intro" data-reveal>{process}</p>}
-            {services.length > 0 && (
-              <ul class="plain-list plain-list--columns services-list" style="--columns: 3">
-                {services.map((service) => <li data-reveal>{service}</li>)}
-              </ul>
-            )}
-          </div>
+          <p class="body" data-reveal>{text}</p>
         </div>
       </section>
-    )}
+    ))}
 
-    {galleryBottom.length > 0 && (
-      <section class="section" aria-label="More project images">
-        <div class="container">
-          <Gallery items={galleryBottom} />
-        </div>
-      </section>
-    )}
+    {bottomParts.map(({ start, end, section }) => (
+      <>
+        {section && (
+          <section class="section" aria-label={section.label}>
+            <div class="container split">
+              <div class="stack" data-reveal>
+                <h2 class="heading-05">{section.label}</h2>
+                {section.text.split(/\n+/).map((paragraph) => <p class="body">{paragraph}</p>)}
+              </div>
+            </div>
+          </section>
+        )}
+        {galleryBottom.slice(start, end).length > 0 && (
+          <section class="section" aria-label="More project images">
+            <div class="container">
+              <Gallery items={galleryBottom.slice(start, end)} />
+            </div>
+          </section>
+        )}
+      </>
+    ))}
 
-    {next.id !== project.id && (
-      <section class="section" aria-labelledby="next">
-        <div class="container split">
-          <SectionHeader label="Next project" id="next" />
-          <a class="intro subtle-link next-project" href={`/work/${next.id}`} data-reveal>{next.data.title}</a>
-        </div>
-      </section>
-    )}
   </div>
+  {next.id !== project.id && <NextProject slot="after" project={next} />}
 </Base>

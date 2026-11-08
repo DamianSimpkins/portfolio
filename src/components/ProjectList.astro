@@ -14,8 +14,6 @@ const { projects } = Astro.props;
       <li data-reveal>
         <a class="project-list__row" href={`/work/${id}`} data-id={id}>
           <span class="heading-04 project-list__title">{data.title}</span>
-          <span class="body-sm muted project-list__client">{data.client}</span>
-          <span class="meta project-list__role">{data.role.join(', ')}</span>
         </a>
       </li>
     ))}
@@ -28,19 +26,28 @@ const { projects } = Astro.props;
 </div>
 
 <script>
-  // Preview in the label column, level with the hovered row. It springs between rows,
-  // leaning with its speed, and each new image wipes in from the direction of travel.
-  // Wide pointer devices only (the column doesn't exist on narrow screens).
+  // Preview follows the cursor: it sits to the right of the pointer (flipping to the left near
+  // the right edge), glides after it on a damped spring and leans with its speed. Each new
+  // image wipes in from the direction of travel. Wide pointer devices only.
   const enabled = matchMedia('(hover: hover) and (pointer: fine) and (min-width: 48rem)');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
   // Heavily damped spring: glides into place without overshoot
-  const STIFFNESS = 0.06;
-  const DAMPING = 0.62;
+  const STIFFNESS = 0.03;
+  const DAMPING = 0.7;
   // How quickly the lean follows velocity; lower is smoother
   const LEAN_SMOOTHING = 0.12;
+  // Gap between cursor and preview, and minimum distance kept from the viewport edge
+  const OFFSET = 28;
+  const EDGE = 16;
   const ease = 'cubic-bezier(0.22, 1, 0.36, 1)';
   const clamp = (value: number, max: number) => Math.max(-max, Math.min(max, value));
+
+  // Arriving back from a case study leaves the cursor over a row; hover stays off until the
+  // mouse actually moves, so the returning thumbnail isn't taken over by the hover preview
+  addEventListener('pointermove', (event) => {
+    if (event.movementX || event.movementY) document.documentElement.removeAttribute('data-returning');
+  });
 
   document.querySelectorAll<HTMLElement>('[data-project-list]').forEach((list) => {
     const preview = list.querySelector<HTMLElement>('.project-list__preview')!;
@@ -48,27 +55,61 @@ const { projects } = Astro.props;
     const images = [...preview.querySelectorAll<HTMLImageElement>('img')];
     const rows = [...list.querySelectorAll<HTMLElement>('.project-list__row')];
 
-    let pos = 0;
-    let vel = 0;
-    let target = 0;
+    let x = 0;
+    let y = 0;
+    let vx = 0;
+    let vy = 0;
+    let targetX = 0;
+    let targetY = 0;
     let lean = 0;
     let frameId = 0;
     let activeIndex = -1;
 
+    // The thumbnail takes the picture's own proportions, so what shows on hover is what the hero
+    // grows into. The box eases between ratios when moving from one project to the next.
+    let ratio = 16 / 9;
+    const setRatio = (img: HTMLImageElement) => {
+      ratio = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 16 / 9;
+      preview.style.aspectRatio = String(ratio);
+    };
+
+    const place = (cursorX: number, cursorY: number) => {
+      const width = preview.offsetWidth;
+      const height = width / ratio;
+      const right = cursorX + OFFSET;
+      const fitsRight = right + width <= innerWidth - EDGE;
+      targetX = fitsRight ? right : Math.max(EDGE, cursorX - OFFSET - width);
+      targetY = Math.max(EDGE, Math.min(innerHeight - height - EDGE, cursorY - height / 2));
+    };
+
     const render = () => {
       const tilt = reduce.matches ? 0 : 1;
       preview.style.transform =
-        `translate3d(0, ${pos}px, 0) perspective(800px) rotateX(${clamp(-lean * 0.3, 8) * tilt}deg)`;
-      frame.style.transform = tilt ? `translate3d(0, ${clamp(-lean * 0.5, 16)}px, 0) scale(1.1)` : '';
+        `translate3d(${x}px, ${y}px, 0) perspective(800px) rotate(${clamp(lean * 0.5, 10) * tilt}deg) rotateX(${clamp(-vy * 0.4, 10) * tilt}deg)`;
     };
 
     const tick = () => {
-      vel = (vel + (target - pos) * STIFFNESS) * DAMPING;
-      pos += vel;
-      lean += (vel - lean) * LEAN_SMOOTHING;
+      vx = (vx + (targetX - x) * STIFFNESS) * DAMPING;
+      vy = (vy + (targetY - y) * STIFFNESS) * DAMPING;
+      x += vx;
+      y += vy;
+      lean += (vx - lean) * LEAN_SMOOTHING;
       render();
-      const settled = Math.abs(target - pos) < 0.1 && Math.abs(lean) < 0.05;
+      const settled =
+        Math.abs(targetX - x) < 0.1 && Math.abs(targetY - y) < 0.1 && Math.abs(lean) < 0.05;
       frameId = settled ? 0 : requestAnimationFrame(tick);
+    };
+
+    const move = (event: PointerEvent) => {
+      if (!enabled.matches || activeIndex === -1) return;
+      place(event.clientX, event.clientY);
+      if (reduce.matches) {
+        x = targetX;
+        y = targetY;
+        render();
+      } else if (!frameId) {
+        frameId = requestAnimationFrame(tick);
+      }
     };
 
     const show = (index: number, event: PointerEvent) => {
@@ -77,19 +118,26 @@ const { projects } = Astro.props;
       if (!next) return hide();
 
       const entering = activeIndex === -1;
+      if (entering) {
+        preview.style.transition = 'none';
+        setRatio(next);
+        preview.getBoundingClientRect();
+        preview.style.transition = '';
+      } else {
+        setRatio(next);
+      }
       // Entering the list: direction from which half of the row the cursor came in on
       const rect = row.getBoundingClientRect();
       const down = entering ? event.clientY < rect.top + rect.height / 2 : index > activeIndex;
       const prev = entering ? undefined : images.find((img) => img.classList.contains('is-active'));
       activeIndex = index;
 
-      target = row.offsetTop;
+      place(event.clientX, event.clientY);
       if (entering || reduce.matches) {
-        pos = target;
-        vel = lean = 0;
+        x = targetX;
+        y = targetY;
+        vx = vy = lean = 0;
         render();
-      } else if (!frameId) {
-        frameId = requestAnimationFrame(tick);
       }
 
       if (prev === next) return;
@@ -121,9 +169,116 @@ const { projects } = Astro.props;
     };
 
     rows.forEach((row, index) => {
-      row.addEventListener('pointerenter', (event) => enabled.matches && show(index, event));
+      row.addEventListener(
+        'pointerenter',
+        (event) => enabled.matches && !document.documentElement.hasAttribute('data-returning') && show(index, event),
+      );
     });
 
+    // Name the preview so the browser morphs it into the hero on the case study page
+    rows.forEach((row, index) => {
+      row.addEventListener('click', (event) => {
+        // The case study plays its entrance when arriving from here
+        try {
+          sessionStorage.setItem('heroEnter', '1');
+        } catch {}
+        if (!enabled.matches) return;
+        // Clicking without hovering first (e.g. straight after coming back, when hover is held
+        // off until the mouse moves): bring up this project's thumbnail at the pointer, fully
+        // shown, so there is still something to grow into the hero
+        if (!preview.classList.contains('is-visible')) {
+          const next = images.find((img) => img.dataset.id === row.dataset.id);
+          if (!next) return;
+          images.forEach((img) => img.classList.remove('is-active', 'is-prev'));
+          next.getAnimations().forEach((animation) => animation.cancel());
+          next.classList.add('is-active');
+          activeIndex = index;
+          setRatio(next);
+          place(event.clientX, event.clientY);
+          x = targetX;
+          y = targetY;
+          vx = vy = lean = 0;
+          preview.style.transition = 'none';
+          preview.classList.add('is-visible');
+        }
+        // The thumbnail grows into the hero over the list, which stays in view until it lands
+        try {
+          sessionStorage.setItem('heroMorph', '1');
+        } catch {}
+        // Settle the thumbnail to a plain, untilted, unzoomed picture so the morph starts
+        // from exactly what the hero looks like at this size
+        cancelAnimationFrame(frameId);
+        frameId = 0;
+        // Ease out of the tilt and zoom first, then leave, so the picture doesn't snap flat
+        const plain = event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+        if (plain && !reduce.matches) {
+          event.preventDefault();
+          const settle = 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)';
+          preview.style.transition = settle;
+          frame.style.transition = settle;
+          requestAnimationFrame(() => {
+            preview.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+            frame.style.transform = '';
+          });
+          setTimeout(() => {
+            preview.style.viewTransitionName = 'project-hero';
+            location.href = (row as HTMLAnchorElement).href;
+          }, 260);
+          return;
+        }
+        preview.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        frame.style.transform = '';
+        preview.style.viewTransitionName = 'project-hero';
+      });
+    });
+    // Back from the cache: forget the thumbnail left over from the last click
+    addEventListener('pageshow', (event) => {
+      preview.style.viewTransitionName = '';
+      if (!event.persisted) return;
+      preview.style.transition = '';
+      hide();
+    });
+
+    list.addEventListener('pointermove', move);
     list.addEventListener('pointerleave', hide);
+  });
+</script>
+
+<script is:inline>
+  // Arriving from a case study: show that project's thumbnail on its row for the page
+  // transition, so the hero appears to shrink into the list. Inline so it is registered
+  // before the first render.
+  addEventListener('pagereveal', (event) => {
+    let id = null;
+    try {
+      id = sessionStorage.getItem('returnProject');
+      sessionStorage.removeItem('returnProject');
+    } catch {}
+    if (id) document.documentElement.setAttribute('data-returning', '');
+    const transition = event.viewTransition;
+    const preview = document.querySelector('.project-list__preview');
+    const row = id && document.querySelector('.project-list__row[data-id="' + id + '"]');
+    if (!transition || !preview || !row || !matchMedia('(min-width: 48rem) and (hover: hover)').matches) return;
+
+    row.scrollIntoView({ block: 'center' });
+    const rect = row.getBoundingClientRect();
+    const x = rect.left + rect.width / 2 - preview.offsetWidth / 2;
+    preview.querySelectorAll('img').forEach((img) => img.classList.toggle('is-active', img.dataset.id === id));
+    preview.style.transition = 'none';
+    const shown = preview.querySelector('img.is-active');
+    if (shown && shown.naturalWidth) preview.style.aspectRatio = String(shown.naturalWidth / shown.naturalHeight);
+    const y = rect.top + rect.height / 2 - preview.offsetHeight / 2;
+    preview.style.transform = 'translate3d(' + x + 'px, ' + y + 'px, 0)';
+    preview.style.viewTransitionName = 'project-hero';
+    preview.classList.add('is-visible');
+
+    const done = () => {
+      // Gone the moment the morph lands (or is skipped), rather than lingering on the row
+      preview.style.transition = 'none';
+      preview.style.viewTransitionName = '';
+      preview.classList.remove('is-visible');
+      requestAnimationFrame(() => (preview.style.transition = ''));
+    };
+    transition.finished.then(done, done);
   });
 </script>

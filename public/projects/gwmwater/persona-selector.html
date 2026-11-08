@@ -1,0 +1,323 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>GWM Persona Selector</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    --navy: #013364;
+    --blue: #3264AD;
+    --sand: #e6e3d5;
+    --card: #f3f1ea;
+    --sky: #eef3fa;
+    --white: #fff;
+    --text: #013364;
+    --border: #d1cfc5;
+    color-scheme: light;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--sand);
+  }
+
+  .ps-section {
+    background: var(--sand);
+    padding: 64px max(24px, env(safe-area-inset-left, 0px));
+    padding-left: max(24px, env(safe-area-inset-left, 0px));
+    padding-right: max(24px, env(safe-area-inset-right, 0px));
+  }
+
+  @media (min-width: 992px) {
+    .ps-section {
+      padding-left: 80px;
+      padding-right: 80px;
+    }
+  }
+
+  .ps-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  /* ── Header row ── */
+  .ps-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  @media (min-width: 992px) {
+    .ps-header {
+      flex-direction: row;
+      justify-content: center;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  }
+
+  .ps-text {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+
+  /* ── Inline toggle ── */
+  .ps-toggle-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: flex-start;
+  }
+
+  .ps-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 2px;
+    font-family: inherit;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--blue);
+    border: none;
+    border-bottom: 4px solid var(--blue);
+    background: transparent;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .ps-trigger:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  .ps-trigger svg {
+    flex-shrink: 0;
+    margin-top: 8px;
+  }
+
+  /* ── Dropdown ── */
+  .ps-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 50;
+    background: var(--white);
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 8px 24px rgba(1,51,100,.15);
+    padding: 12px;
+    min-width: 331px;
+    display: none;
+  }
+
+  .ps-dropdown.open { display: block; }
+
+  .ps-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--navy);
+    background: transparent;
+    cursor: pointer;
+    transition: background 120ms, color 120ms;
+  }
+
+  .ps-option:hover,
+  .ps-option[aria-selected="true"] {
+    background: var(--sky);
+    color: var(--blue);
+  }
+
+  /* ── Link grid ── */
+  .ps-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  @media (min-width: 992px) {
+    .ps-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  }
+
+  /* ── Link item ── */
+  .ps-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--card);
+    border-radius: 8px;
+    padding: 18px 18px 18px 16px;
+    text-decoration: none;
+    transition: background 200ms, padding-left 200ms;
+  }
+
+  @media (min-width: 992px) {
+    .ps-link { padding: 24px; }
+    .ps-link:hover { padding-left: 40px; background: var(--white); }
+  }
+
+  .ps-link-label {
+    font-size: 16px;
+    color: var(--navy);
+    transition: color 150ms;
+  }
+
+  @media (min-width: 992px) { .ps-link-label { font-size: 18px; } }
+
+  .ps-link:hover .ps-link-label { color: var(--blue); }
+
+  .ps-arrow {
+    flex-shrink: 0;
+    color: var(--blue);
+  }
+</style>
+
+<section class="ps-section">
+  <div class="ps-inner">
+
+    <!-- Header -->
+    <div class="ps-header">
+      <span class="ps-text">I'm a</span>
+
+      <div class="ps-toggle-wrap" id="toggleWrap">
+        <button
+          class="ps-trigger"
+          type="button"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+          id="triggerBtn"
+        >
+          <span id="selectedLabel">resident</span>
+          <svg id="chevronIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+
+        <div class="ps-dropdown" role="listbox" aria-label="Select persona" id="dropdown">
+          <button class="ps-option" role="option" aria-selected="true"  data-idx="0" type="button">resident</button>
+          <button class="ps-option" role="option" aria-selected="false" data-idx="1" type="button">business owner</button>
+          <button class="ps-option" role="option" aria-selected="false" data-idx="2" type="button">developer</button>
+        </div>
+      </div>
+
+      <span class="ps-text">and I want to...</span>
+    </div>
+
+    <!-- Link grid -->
+    <div class="ps-grid" id="linkGrid"></div>
+
+  </div>
+</section>
+
+<script>
+  const personas = [
+    {
+      label: 'resident',
+      links: [
+        { label: 'Pay my bill online',           href: '#' },
+        { label: 'Report a fault or leak',        href: '#' },
+        { label: 'Check water restrictions',      href: '#' },
+        { label: 'Set up a new account',          href: '#' },
+        { label: 'Find my nearest service',       href: '#' },
+        { label: 'Learn about water quality',     href: '#' },
+      ],
+    },
+    {
+      label: 'business owner',
+      links: [
+        { label: 'Apply for a trade waste permit', href: '#' },
+        { label: 'Manage my business account',     href: '#' },
+        { label: 'Request a meter read',           href: '#' },
+        { label: 'Understand my water usage',      href: '#' },
+        { label: 'Report a water emergency',       href: '#' },
+        { label: 'View service availability',      href: '#' },
+      ],
+    },
+    {
+      label: 'developer',
+      links: [
+        { label: 'Apply for a new connection',    href: '#' },
+        { label: 'Access development guidelines', href: '#' },
+        { label: 'Request infrastructure info',   href: '#' },
+        { label: 'Submit development plans',      href: '#' },
+        { label: 'Check service availability',    href: '#' },
+        { label: 'Contact our developer team',    href: '#' },
+      ],
+    },
+  ];
+
+  let selectedIdx = 0;
+
+  const triggerBtn   = document.getElementById('triggerBtn');
+  const dropdown     = document.getElementById('dropdown');
+  const selectedLabel = document.getElementById('selectedLabel');
+  const chevronIcon  = document.getElementById('chevronIcon');
+  const linkGrid     = document.getElementById('linkGrid');
+  const options      = dropdown.querySelectorAll('.ps-option');
+
+  const chevronDown = '<polyline points="6 9 12 15 18 9"/>';
+  const chevronUp   = '<polyline points="18 15 12 9 6 15"/>';
+
+  function renderLinks() {
+    const links = personas[selectedIdx].links;
+    linkGrid.innerHTML = links.map(l => `
+      <a class="ps-link" href="${l.href}">
+        <span class="ps-link-label">${l.label}</span>
+        <svg class="ps-arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </a>
+    `).join('');
+  }
+
+  function setOpen(open) {
+    dropdown.classList.toggle('open', open);
+    triggerBtn.setAttribute('aria-expanded', open);
+    chevronIcon.innerHTML = open ? chevronUp : chevronDown;
+  }
+
+  function selectPersona(idx) {
+    selectedIdx = idx;
+    selectedLabel.textContent = personas[idx].label;
+    options.forEach((o, i) => o.setAttribute('aria-selected', i === idx));
+    renderLinks();
+    setOpen(false);
+  }
+
+  triggerBtn.addEventListener('click', () => setOpen(!dropdown.classList.contains('open')));
+
+  options.forEach(opt => {
+    opt.addEventListener('click', () => selectPersona(+opt.dataset.idx));
+  });
+
+  document.addEventListener('mousedown', e => {
+    if (!document.getElementById('toggleWrap').contains(e.target)) setOpen(false);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') setOpen(false);
+  });
+
+  renderLinks();
+</script>
+
+</body></html>

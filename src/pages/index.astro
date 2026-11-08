@@ -4,29 +4,22 @@ import Base from '../layouts/Base.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import ProjectList from '../components/ProjectList.astro';
 
-const featured = (await getCollection('projects', ({ data }) => data.featured))
-  .sort((a, b) => a.data.order - b.data.order);
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 ---
 
 <Base>
   <section class="section">
-    <div class="container"><div class="content-col stack">
+    <div class="container">
       <h1 data-reveal class="intro">
-        I'm Damian Simpkins, a [role] based in [city]. Replace this with a sentence on what you do and who for.
+        I'm a Sydney-based designer with over 20 years of experience crafting websites, apps and other digital products, for clients from startups to established brands. I'm currently a lead designer at Webcoda.
       </h1>
-      <p data-reveal class="intro">
-        A second sentence or two on how you work and what you care about in the work.
-      </p>
-      <p data-reveal class="intro">
-        Have a project in mind? <a class="subtle-link" href="/contact">Let's talk.</a>
-      </p>
-    </div></div>
+    </div>
   </section>
 
-  <section class="section" aria-labelledby="featured">
-    <div class="container split">
-      <SectionHeader label="Selected work" id="featured" />
-      <ProjectList projects={featured} />
+  <section class="section" id="work" aria-labelledby="selected-works">
+    <div class="container stack">
+      <SectionHeader label="Selected works" id="selected-works" />
+      <ProjectList projects={projects} />
     </div>
   </section>
 </Base>

@@ -37,11 +37,11 @@ Raw scale (`--text-*`, `--space-*`) → semantic aliases (`--display`, `--headin
 
 Quiet and typographic. References: lucydatyner.com (first-person intro, plain lists) and mikekus.com (label column + content column, hairline grid).
 
-- Fluid layout: `.container` has no max width. One side margin (`--gutter`) for text and images alike, stepping up at 48rem and 75rem. Don't inset images separately. Text line length is capped by `--measure` / `--measure-intro`, not by the container.
+- Fluid layout up to `--max-width` (1000px, margins included). One side margin (`--gutter`) for text and images alike, stepping up at 48rem and 75rem, then growing past 1000px so everything stays aligned. Heroes stay full-bleed. Don't inset images separately. On case studies the copy is a centred 900px column (`--content-width`) under images that run up to 1200px (the content width plus a 100px overhang each side on wide screens). Text line length is capped by `--measure` / `--measure-intro`, not by the container.
 - Pages open with large first-person `.intro` paragraphs, aligned to the content column with `.content-col`.
 - Labels are sentence case and muted. No numbered section labels (01, 02), no uppercase-tracked or monospace metadata, no year columns. These read as generic AI-generated portfolio tropes.
 - Lists are plain text (`.plain-list`), not cards. Use inline `.subtle-link` rather than buttons.
-- Case study pages (`src/pages/work/[id].astro`), after the Kus Studio case study layout: meta strip → Overview → `galleryTop` → What I did + 3-column services → `galleryBottom` → Next project. Only two image shapes: `full` (3:2, full width) and `half` (square, two-up). Keep it that simple. No rounded corners anywhere on the site.
+- Case study pages (`src/pages/work/[id].astro`), after the Kus Studio case study layout: meta strip → Overview → `galleryTop` → What I did + 3-column services → `galleryBottom` → Next project. Images keep their own proportions (no cropping) in three layouts: `full` (full width), `half` (two-up) and `third` (three in a row). Images come from `public/projects/<project>/`: `hero` is the cover, a lone image is `full`, `name-01` + `name-02` form a `half` pair and `name-01..03` a `third` row. Keep it that simple. No rounded corners anywhere on the site, except the plain white phone frame around mobile screenshots (`frame: phone`).
 
 ## Components
 

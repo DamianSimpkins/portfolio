@@ -2,11 +2,20 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
-// Case study gallery image. `full` spans the width at 3:2; `half` sits two-up, square.
-const galleryItem = z.object({
+// Case study gallery image, shown at its own proportions. `full` spans the width; `half` sits
+// two-up; `third` sits three in a row.
+const galleryImage = z.object({
   src: z.string(),
   alt: z.string(),
-  layout: z.enum(['full', 'half']).default('full'),
+  // Optional line shown under the image
+  caption: z.string().optional(),
+  layout: z.enum(['full', 'half', 'third']).default('full'),
+  // Shows the image in a plain white phone or tablet frame (for mobile and tablet screenshots)
+  frame: z.enum(['phone', 'tablet']).optional(),
+  // `src` is an interactive HTML page, shown live in a frame instead of as a picture (`alt` titles it)
+  embed: z.boolean().optional(),
+  // Overrides the frame height (rem) at every screen width
+  embedHeight: z.number().optional(),
 });
 
 const projects = defineCollection({
@@ -22,13 +31,27 @@ const projects = defineCollection({
     cover: z.string().optional(),
     url: z.string().url().optional(),
     order: z.number().default(0),
-    featured: z.boolean().default(false),
-    // "What I did": a short paragraph and the deliverables list
-    process: z.string().optional(),
+    // Deliverables list, shown under the overview
     services: z.array(z.string()).default([]),
+    // Text sections after the first gallery, each with its own label (e.g. "What I did", "Outcome")
+    sections: z
+      .array(
+        z.object({
+          label: z.string(),
+          text: z.string(),
+          // Set to place the section inside the second gallery, before the image at this position
+          // (counting from 0), instead of between the two galleries
+          before: z.number().optional(),
+        }),
+      )
+      .default([]),
+    // Page background for this project's case study, e.g. "#EBF8FE"
+    background: z.string().optional(),
+    // Colour behind rows of two or more images, e.g. "#EBEFF7"; defaults to a faint tint of the page
+    panel: z.string().optional(),
     // Blocks after the overview, and after "What I did"
-    galleryTop: z.array(galleryItem).default([]),
-    galleryBottom: z.array(galleryItem).default([]),
+    galleryTop: z.array(galleryImage).default([]),
+    galleryBottom: z.array(galleryImage).default([]),
   }),
 });
 

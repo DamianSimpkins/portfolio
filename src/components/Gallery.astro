@@ -1,5 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import sharp from 'sharp';
+import { join } from 'node:path';
 
 type Item = CollectionEntry<'projects'>['data']['galleryTop'][number];
 
@@ -8,12 +10,54 @@ interface Props {
 }
 
 const { items } = Astro.props;
+
+// Images per row for each layout
+const columns = { full: 1, half: 2, third: 3 };
+
+// Consecutive images with the same layout fill one row: a full image is its own, two
+// halves make a pair, three thirds make a row.
+const sections: Item[][] = [];
+for (const item of items) {
+  const last = sections[sections.length - 1];
+  if (last && last[0].layout === item.layout && last.length < columns[item.layout]) last.push(item);
+  else sections.push([item]);
+}
+
+// Read each picture's size so its box is reserved before it loads. Without this, images below
+// the fold have no height until they lazy-load, and the page grows as you scroll to them.
+const sizes = new Map<string, { width?: number; height?: number }>();
+await Promise.all(
+  items
+    .filter((item) => !item.embed)
+    .map(async (item) => {
+      try {
+        const { width, height } = await sharp(join('public', item.src)).metadata();
+        sizes.set(item.src, { width, height });
+      } catch {}
+    }),
+);
 ---
 
 <div class="gallery">
-  {items.map(({ src, alt, layout }) => (
-    <figure class={`gallery__item gallery__item--${layout}`} data-reveal>
-      <img src={src} alt={alt} loading="lazy" decoding="async" />
-    </figure>
+  {sections.map((section) => (
+    <div
+      class:list={['gallery__section', section.length > 1 && 'gallery__section--multi']}
+      style={`--columns: ${columns[section[0].layout]}`}
+    >
+      {section.map((item) => (
+        <figure data-reveal>
+          {item.embed ? (
+            <iframe class="gallery__embed" src={item.src} title={item.alt} loading="lazy" style={item.embedHeight ? `--embed-height: ${item.embedHeight}rem` : undefined} />
+          ) : item.frame ? (
+            <div class:list={['phone', item.frame === 'tablet' && 'phone--tablet']}>
+              <img src={item.src} alt={item.alt} {...sizes.get(item.src)} loading="lazy" decoding="async" />
+            </div>
+          ) : (
+            <img src={item.src} alt={item.alt} {...sizes.get(item.src)} loading="lazy" decoding="async" />
+          )}
+          {item.caption && <figcaption class="body-sm muted">{item.caption}</figcaption>}
+        </figure>
+      ))}
+    </div>
   ))}
 </div>

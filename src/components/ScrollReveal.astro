@@ -2,15 +2,41 @@
 // Fades and lifts [data-reveal] elements in as they scroll into view.
 // The inline script opts in before first paint so nothing flashes; without JS,
 // or with reduced motion, elements are simply visible.
+// Arriving through a page transition (e.g. the thumbnail morphing into a hero), reveals start
+// as the image is settling, so the content flows in right behind it.
 ---
 <script is:inline>
   if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     document.documentElement.classList.add('reveal-ready');
   }
+
+  // ms after the morph starts. Coming back from a case study the list reveals straight away,
+  // so it is already arriving as the image zooms into its row.
+  let returning = false;
+  try {
+    returning = !!sessionStorage.getItem('returnProject');
+  } catch {}
+  const LEAD = returning ? 0 : 550;
+
+  // Resolves once any arrival transition has finished (or straight away if there isn't one)
+  window.revealGate = new Promise((resolve) => {
+    if (!('onpagereveal' in window)) return resolve();
+    addEventListener('pagereveal', (event) => {
+      const transition = event.viewTransition;
+      if (!transition) return resolve();
+      // A skipped transition (e.g. in a background tab) rejects these; nothing to do about it
+      transition.finished.catch(() => {});
+      transition.updateCallbackDone?.catch(() => {});
+      // The morph eases out, so by this point it is nearly at rest
+      transition.ready.then(() => setTimeout(resolve, LEAD), resolve);
+    });
+    // Never wait forever if the event doesn't arrive
+    setTimeout(resolve, 2500);
+  });
 </script>
 
 <script>
-  const STAGGER = 0.08; // seconds between elements revealed together
+  const STAGGER = 0.1; // seconds between elements revealed together
 
   if (document.documentElement.classList.contains('reveal-ready')) {
     const observer = new IntersectionObserver(
@@ -34,6 +60,7 @@
       { rootMargin: '0px 0px -10% 0px', threshold: 0.1 },
     );
 
-    document.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el));
+    const start = () => document.querySelectorAll('[data-reveal], .split').forEach((el) => observer.observe(el));
+    (window as unknown as { revealGate?: Promise<void> }).revealGate?.then(start) ?? start();
   }
 </script>

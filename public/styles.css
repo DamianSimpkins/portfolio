@@ -38,19 +38,24 @@
   --heading-05: var(--text-lg);
   --intro: var(--text-xl);
   --lead: var(--text-md);
-  --body: var(--text-base);
+  --body: var(--text-md);
+  --body-md: var(--text-base);
   --body-sm: var(--text-sm);
   --meta: var(--text-xs);
 
   /* Semantic spacing aliases */
-  /* Fluid layout, no max width. One side margin for text and images; steps up at 48rem and 75rem */
+  /* Fluid layout up to --max-width. One side margin for text and images; steps up at 48rem and 75rem, then grows to keep content within --max-width */
   --gutter: var(--space-5);
+  /* How far images and hairlines run out past the text into the side margin */
+  --bleed: min(calc(var(--gutter) / 2), calc(var(--space-8) / 2));
   --section-gap: var(--space-9);
   --stack-sm: var(--space-3);
   --stack: var(--space-5);
   --stack-lg: var(--space-7);
 
   /* Layout */
+  --max-width: 62.5rem; /* 1000px: content and side margins together */
+  --content-width: 56.25rem; /* 900px: case study copy, centred under the images */
   --measure: 65ch;
   --measure-intro: 46ch;
   --thumb-width: 20rem;
@@ -58,46 +63,57 @@
 
   /* Motion */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --reveal-distance: var(--space-6);
   --reveal-duration: 0.9s;
 
   /* Type */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Fira Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* Colour — light */
-  --color-bg: #f6f5f2;
+  /* Colour */
+  --color-bg: #ffffff;
   --color-surface: #ffffff;
   --color-text: #141414;
   --color-text-muted: #5c5c58;
-  --color-border: #d9d7d0;
+  /* Dividers: black at low opacity on light backgrounds (case studies switch to white on dark ones) */
+  --color-border: rgb(0 0 0 / 0.12);
+  /* Tint behind rows of two or more gallery images: dark on light pages (case studies on a dark
+     page colour switch it to a light one) */
+  --color-overlay: rgb(0 0 0 / 0.03);
   --color-accent: #2f4bff;
   --color-accent-contrast: #ffffff;
+  /* White: header and labels sitting on images */
+  --color-invert: #ffffff;
+  /* Darkening behind the next-project title, so it reads over a light image */
+  --color-scrim: rgb(0 0 0 / 0.65);
+  /* Dark text for use over pale images */
+  --color-ink: #141414;
 
-  color-scheme: light dark;
+  --nav-height: 3.5rem;
+  /* Case study hero height: 16:9 (3:2 on mobile), never taller than the screen. The next
+     project's peek uses the same so it lands exactly. */
+  --hero-height: min(56.25vw, 100vh);
+
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
+@media (max-width: 47.99rem) {
   :root {
-    --color-bg: #121211;
-    --color-surface: #1b1b1a;
-    --color-text: #efeee9;
-    --color-text-muted: #9e9d97;
-    --color-border: #2e2e2b;
-    --color-accent: #8c9cff;
-    --color-accent-contrast: #121211;
+    --hero-height: min(66.667vw, 100vh);
   }
 }
 
 @media (min-width: 48rem) {
   :root {
-    --gutter: var(--space-7);
+    --gutter: max(var(--space-7), calc((100vw - var(--max-width)) / 2));
   }
 }
 
 @media (min-width: 75rem) {
   :root {
-    --gutter: var(--space-8);
+    /* Past --max-width the margin grows, so text, images and the fixed header stay aligned */
+    --gutter: max(var(--space-8), calc((100vw - var(--max-width)) / 2));
   }
 }
 
@@ -216,6 +232,7 @@ a:hover {
 
 .heading-05 {
   font-size: var(--heading-05);
+  font-weight: 500;
   line-height: 1.3;
 }
 
@@ -239,6 +256,11 @@ a:hover {
 .body {
   font-size: var(--body);
   line-height: 1.6;
+}
+
+.body-md {
+  font-size: var(--body-md);
+  line-height: 1.5;
 }
 
 .body-sm {
@@ -321,8 +343,8 @@ a:hover {
   opacity: 0;
   translate: 0 var(--reveal-distance);
   transition:
-    opacity var(--reveal-duration) var(--ease-out) var(--reveal-delay, 0s),
-    translate var(--reveal-duration) var(--ease-out) var(--reveal-delay, 0s);
+    opacity var(--reveal-duration) var(--ease-out) calc(var(--reveal-delay, 0s) + var(--reveal-extra, 0s)),
+    translate var(--reveal-duration) var(--ease-out) calc(var(--reveal-delay, 0s) + var(--reveal-extra, 0s));
 }
 
 .reveal-ready [data-reveal].is-revealed {
@@ -347,6 +369,11 @@ a:hover {
   padding-top: 0;
 }
 
+/* Extra room under the last block of a case study, before the footer */
+.case > .section:last-child {
+  padding-bottom: calc(var(--section-gap) * 2);
+}
+
 .stack > * + * {
   margin-top: var(--stack);
 }
@@ -366,10 +393,31 @@ a:hover {
 
 /* Label column + content column, divided from what's above by a hairline */
 .split {
+  position: relative;
   display: grid;
   gap: var(--stack);
   padding-top: var(--stack);
-  border-top: var(--rule) solid var(--color-border);
+}
+
+/* The hairline is its own layer so it can draw in from the left */
+.split::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: calc(var(--gutter) - var(--bleed));
+  right: calc(var(--gutter) - var(--bleed));
+  height: var(--rule);
+  background: var(--color-border);
+  transform-origin: left;
+}
+
+.reveal-ready .split::before {
+  transform: scaleX(0);
+  transition: transform 1.4s var(--ease-out) var(--reveal-delay, 0s);
+}
+
+.reveal-ready .split.is-revealed::before {
+  transform: none;
 }
 
 @media (min-width: 48rem) {
@@ -379,62 +427,67 @@ a:hover {
   }
 }
 
-/* Aligns content with the second column of .split */
-@media (min-width: 48rem) {
-  .content-col {
-    margin-left: calc((100% - var(--stack-lg)) / 3 + var(--stack-lg));
-  }
-}
-
 /* ==========================================================================
    Components
    ========================================================================== */
 
 /* Nav */
+/* Sticky. The name and the Back link each take their colour from the pixels directly behind
+   them (worked out by script): white or dark ink over an image, whichever reads better, and
+   the normal text colour over the plain page. Case studies, which open on a hero, start white
+   until it has been read, so there is no flash. */
 .nav {
-  border-bottom: var(--rule) solid var(--color-border);
+  height: var(--nav-height);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  view-transition-name: site-header;
 }
 
 .nav__inner {
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--stack);
-  padding-block: var(--space-4);
+}
+
+.nav__brand,
+.back-link {
+  color: var(--color-text);
+  transition: color 0.5s var(--ease-in-out);
+}
+
+html:has(.case-hero) .nav__brand:not([data-tone]),
+html:has(.case-hero) .back-link:not([data-tone]),
+.nav__brand[data-tone='light'],
+.back-link[data-tone='light'] {
+  color: var(--color-invert);
+}
+
+.nav__brand[data-tone='dark'],
+.back-link[data-tone='dark'] {
+  color: var(--color-ink);
+}
+
+.nav__brand[data-tone='page'],
+.back-link[data-tone='page'] {
+  color: var(--color-text);
 }
 
 .nav__brand {
-  font-weight: 600;
+  font-weight: 400;
   text-decoration: none;
-}
-
-.nav__links {
-  display: flex;
-  gap: var(--space-4);
-  padding: 0;
-  list-style: none;
-}
-
-@media (min-width: 48rem) {
-  .nav__links {
-    gap: var(--space-6);
-  }
-}
-
-.nav__links a {
-  text-decoration: none;
-  color: var(--color-text-muted);
-}
-
-.nav__links a:hover,
-.nav__links a[aria-current="page"] {
-  color: var(--color-text);
 }
 
 /* Footer */
 .footer {
-  border-top: var(--rule) solid var(--color-border);
   padding-block: var(--space-6);
+}
+
+/* Case studies have no footer: they end on the next project */
+html:has(.case) .footer {
+  display: none;
 }
 
 .footer__inner {
@@ -452,6 +505,13 @@ a:hover {
   list-style: none;
 }
 
+/* Plain links: no underline, and the colour stays the text colour on hover too */
+.footer__links a,
+.footer__links a:hover {
+  color: inherit;
+  text-decoration: none;
+}
+
 /* Section header */
 .section-header {
   font-size: var(--body-sm);
@@ -460,47 +520,321 @@ a:hover {
   color: var(--color-text-muted);
 }
 
+/* Close button on case studies: a black square with a white cross, pinned to the top right
+   corner of the screen */
+.back-link {
+  position: fixed;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--color-ink);
+  text-decoration: none;
+  view-transition-name: back-link;
+}
+
+.back-link svg {
+  stroke: var(--color-invert);
+}
+
+/* Comes in on its own once the page is there: a soft fade and rise in size. Only when arriving
+   from the home list; between projects it stays put. When the hero grows in from the list, it
+   waits for that to land. */
+html:not([data-no-hero-enter]) .back-link {
+  animation: close-in 0.7s var(--ease-out) 0.3s backwards;
+}
+
+html[data-hero-morph]:not([data-no-hero-enter]) .back-link {
+  animation-delay: 1s;
+}
+
+@keyframes close-in {
+  from {
+    opacity: 0;
+    scale: 0.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back-link {
+    animation: none;
+  }
+}
+
+/* The name is left off case study pages */
+html:has(.case) .nav__brand {
+  visibility: hidden;
+}
+
+/* Case study hero: full width at --hero-height, running up under the sticky header.
+   It stays pinned while the content below scrolls up over it. */
+.case-hero {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--hero-height);
+  margin-top: calc(var(--nav-height) * -1);
+  overflow: hidden;
+}
+
+/* Content sections sit over the pinned hero, so they need to cover it */
+.case > .section {
+  position: relative;
+  background: var(--color-bg);
+}
+
+.case-hero__media {
+  flex: none;
+  width: 100%;
+  height: 100%;
+  view-transition-name: project-hero;
+}
+
+.case-hero__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* As the page scrolls over the pinned hero, the picture zooms in (20% by the time it is
+   covered; the hero's edges clip it, so no gaps show). Driven by the scroll position, so it
+   needs no script; browsers without scroll-driven animations simply leave it still. */
+@supports (animation-timeline: scroll()) {
+  .case-hero__media img {
+    animation: hero-zoom linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 var(--hero-height);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .case-hero__media img {
+      animation: none;
+    }
+  }
+}
+
+@keyframes hero-zoom {
+  to {
+    scale: 1.2;
+  }
+}
+
+/* Where there is no thumbnail to morph from (touch and narrow screens), the hero enters by
+   itself when you arrive from the list: it wipes down from the top edge while settling in
+   from slightly zoomed. */
+@media not all and (hover: hover) and (pointer: fine) and (min-width: 48rem) {
+  html:not([data-no-hero-enter]) .case-hero__media {
+    transform-origin: top;
+    animation: hero-enter 1s var(--ease-out) backwards;
+  }
+}
+
+@keyframes hero-enter {
+  from {
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(-6%) scale(1.1);
+  }
+
+  to {
+    clip-path: inset(0);
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .case-hero .case-hero__media {
+    animation: none;
+  }
+}
+
+/* Page navigations: only the project thumbnail morphs into the hero; the rest swaps instantly */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-group(project-hero) {
+  /* Above the header name (1), under the close button (10) */
+  z-index: 5;
+  animation-duration: 1s;
+  /* Even in and out: no lunge at the start, no crawl at the end */
+  animation-timing-function: cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+/* One picture does the whole move, so there is no cross-fade and nothing see-through.
+   Opening a project: the sharp hero is shrunk down to the thumbnail's size and grows from
+   there, rather than stretching up a small thumbnail. Going back, the hero shrinks into the
+   row. Both ends are the same 16:9 picture, so the start and end frames match. */
+::view-transition-old(project-hero),
+::view-transition-new(project-hero) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  mix-blend-mode: normal;
+  animation: none;
+  opacity: 1;
+}
+
+/* The old picture stays on screen under the new one until the new page has painted, so nothing
+   goes blank while it loads (scrolling on from one project to the next, or opening from the list).
+   Opening from the list, the thumbnail itself is the start of the move and grows with the box,
+   so the picture scales instead of being revealed through a small window. The hero (already
+   cropped to the screen) only fades in over it late, once it is nearly full size. */
+
+html[data-hero-morph]::view-transition-new(project-hero) {
+  animation: vt-fade-in 0.5s ease-in-out 0.45s both;
+}
+
+/* Opening a project from the list: the list stays on screen while the hero grows over it,
+   and the project page fades in slowly underneath as the hero grows, so nothing disappears. */
+html[data-hero-morph]::view-transition-old(root),
+html[data-hero-morph]::view-transition-new(root) {
+  mix-blend-mode: normal;
+}
+
+html[data-hero-morph]::view-transition-new(root) {
+  animation: vt-fade-in 0.8s var(--ease-in-out) 0.3s both;
+}
+
+/* Returning to the list: one continuous zoom from the hero down into its row, while the
+   case study around it cross-fades out */
+html[data-returning]::view-transition-group(project-hero) {
+  animation-duration: 0.9s;
+}
+
+html[data-returning]::view-transition-old(project-hero) {
+  display: block;
+}
+
+html[data-returning]::view-transition-new(project-hero) {
+  display: none;
+}
+
+/* On phones the list has no thumbnail to zoom into, so the hero has nothing to land on. Left to
+   itself it would sit on top, fully opaque, and then vanish when the transition ends. Fade it
+   out with the rest of the page instead. */
+html[data-returning]::view-transition-old(project-hero):only-child {
+  animation: vt-fade-out 0.45s var(--ease-out) both;
+}
+
+html[data-returning]::view-transition-old(root) {
+  animation: vt-fade-out 0.45s var(--ease-out) both;
+  mix-blend-mode: normal;
+}
+
+html[data-returning]::view-transition-new(root) {
+  mix-blend-mode: normal;
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Layers during a page transition, lowest to highest: the page, the header name, the morphing
+   hero (so it scales over the name), then the close button. */
+::view-transition-group(site-header) {
+  z-index: 1;
+}
+
+::view-transition-group(back-link) {
+  z-index: 10;
+}
+
+/* The name only shows on the home page. Leaving for a project, it stays with the page it belongs
+   to and fades out as that page gives way (late, when the hero is growing in from the list);
+   coming back, it fades in once the page is there. */
+::view-transition-old(site-header) {
+  mix-blend-mode: normal;
+  animation: vt-fade-out 0.35s var(--ease-out) both;
+}
+
+html[data-hero-morph]::view-transition-old(site-header) {
+  animation-duration: 0.4s;
+  animation-delay: 0.7s;
+}
+
+::view-transition-new(site-header) {
+  mix-blend-mode: normal;
+  animation: none;
+}
+
+html[data-returning]::view-transition-new(site-header) {
+  animation: vt-fade-in 0.5s var(--ease-out) 0.4s both;
+}
+
+/* The Back link: between two case studies it is on both pages, so it just stays put. It only
+   fades when it is arriving (from the list) or leaving (to the list). */
+::view-transition-old(back-link) {
+  animation: none;
+  opacity: 0;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(back-link) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(back-link):only-child {
+  opacity: 1;
+  animation: vt-fade-out 0.2s var(--ease-out) both;
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(project-hero) {
+    animation: none;
+  }
+
+  ::view-transition-old(back-link),
+  ::view-transition-new(back-link) {
+    animation: none;
+  }
+}
+
 /* Project list */
 .project-list__items {
+  /* Hairlines run wider than the text; rows pad back in so the text stays on the margin */
+  margin-inline: calc(var(--bleed) * -1);
   padding: 0;
   list-style: none;
-  border-bottom: var(--rule) solid var(--color-border);
 }
 
 .project-list__row {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--space-2) var(--stack-sm);
-  align-items: baseline;
+  padding-inline: var(--bleed);
+  display: block;
   padding-block: var(--space-5);
   border-top: var(--rule) solid var(--color-border);
   text-decoration: none;
-  transition: opacity 0.2s, color 0.2s;
+  transition: color 0.2s;
 }
 
 .project-list__title {
-  grid-column: 1 / -1;
+  display: block;
   font-weight: 400;
+  transition: opacity 0.2s;
 }
 
 .project-list__items > li:first-child .project-list__row {
   padding-top: 0;
   border-top: 0;
-}
-
-.project-list__role {
-  text-align: right;
-}
-
-@media (min-width: 48rem) {
-  .project-list__row {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
-    gap: var(--stack);
-  }
-
-  .project-list__title {
-    grid-column: auto;
-  }
 }
 
 .project-list__row:hover,
@@ -511,7 +845,8 @@ a:hover {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .project-list__items:hover .project-list__row:not(:hover) {
+  /* Only the titles dim; the dividers stay as they are */
+  .project-list__items:hover .project-list__row:not(:hover) .project-list__title {
     opacity: 0.35;
   }
 }
@@ -520,24 +855,22 @@ a:hover {
   position: relative;
 }
 
-/* Sits in the empty label column to the left of the list, level with the hovered row.
-   The list spans two thirds of a .split, so 50% of its width is the label column. */
+/* Follows the cursor; position is set from script */
 .project-list__preview {
   display: none;
-  position: absolute;
+  position: fixed;
   top: 0;
-  right: 100%;
+  left: 0;
   z-index: 10;
-  width: min(var(--thumb-width), 50%);
-  aspect-ratio: 4 / 3;
-  margin-right: var(--stack-lg);
+  width: var(--thumb-width);
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   pointer-events: none;
   will-change: transform;
   opacity: 0;
   scale: 0.96;
-  transform-origin: right center;
-  transition: opacity 0.3s, scale 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.4s, scale 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    aspect-ratio 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (min-width: 48rem) and (hover: hover) and (pointer: fine) {
@@ -549,15 +882,6 @@ a:hover {
 .project-list__preview.is-visible {
   opacity: 1;
   scale: 1;
-}
-
-/* The preview takes over the label column, so its label steps aside */
-.split > .section-header {
-  transition: opacity 0.3s;
-}
-
-.split:has(.project-list__preview.is-visible) > .section-header {
-  opacity: 0;
 }
 
 /* Inner layer, shifted against the motion for parallax */
@@ -631,75 +955,233 @@ a:hover {
   --section-gap: var(--space-8);
 }
 
-.meta-strip {
-  border-top: 0;
+/* Same size and weight as the project links on the home page */
+.case-title {
+  /* Same centred column as the copy below; fills its width instead of balancing short lines */
+  width: 100%;
+  max-width: var(--content-width);
+  margin-inline: auto;
+  margin-bottom: var(--stack);
+  font-weight: 400;
+  text-wrap: pretty;
+}
+
+/* Text sections are a single column, full width, with no hairline above */
+.case .split {
   padding-top: 0;
 }
 
-.meta-strip dd {
-  margin: var(--space-1) 0 0;
-  font-size: var(--lead);
-  font-weight: 500;
-  line-height: 1.3;
+/* Copy is a narrower column than the image sections, centred under them */
+.case .split > * {
+  width: 100%;
+  max-width: var(--content-width);
+  margin-inline: auto;
 }
 
-.meta-strip__details {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--stack) var(--stack);
+.case .split::before {
+  display: none;
 }
 
 @media (min-width: 48rem) {
-  .meta-strip__details {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .case .split {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--stack);
   }
 }
 
 .services-list > li {
-  font-size: var(--lead);
-  font-weight: 500;
-  padding-block: var(--space-5);
+  font-size: var(--body-md);
+  line-height: 1.5;
+  padding-block: var(--space-3);
 }
 
-/* Gallery: images sit inset from the text grid, 3:2 by default, flat corners */
+/* A hairline above the first row too: the first item on small screens (one column), the first
+   three from 48rem (three columns) */
+.services-list > li:first-child {
+  border-top: var(--rule) solid var(--color-border);
+}
+
+@media (min-width: 48rem) {
+  .services-list > li:nth-child(-n + 3) {
+    border-top: var(--rule) solid var(--color-border);
+  }
+}
+
+/* Gallery: rows of images, 1200px at most (the 1000px content width plus 100px each side on wide
+   screens), flat corners */
 .gallery {
-  --gallery-gap: var(--space-4);
+  --gallery-gap: var(--space-5);
+  /* Padding inside tinted rows of two or more images */
+  --gallery-pad: var(--gallery-gap);
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--gallery-gap);
 }
 
 @media (min-width: 48rem) {
   .gallery {
-    --gallery-gap: var(--space-6);
+    --gallery-gap: var(--space-7);
+    --gallery-pad: 5rem; /* 80px */
   }
 }
 
-.gallery__item {
-  grid-column: 1 / -1;
+@media (min-width: 75rem) {
+  .gallery {
+    margin-inline: -6.25rem; /* 100px: content 1000px -> images 1200px */
+  }
 }
 
-.gallery__item--half {
-  grid-column: auto;
+/* One row per single image, pair or row of three */
+.gallery__section {
+  display: grid;
+  gap: var(--gallery-gap);
+  align-items: start;
+}
+
+/* Pairs and rows of three sit side by side from 48rem */
+@media (min-width: 48rem) {
+  .gallery__section {
+    grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  }
+}
+
+/* Below that they become a side-swipe row: the first image fills most of the width and the
+   next peeks in from the right, snapping one image at a time */
+@media (max-width: 47.99rem) {
+  .gallery__section--multi {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gallery-pad);
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .gallery__section--multi::-webkit-scrollbar {
+    display: none;
+  }
+
+  .gallery__section--multi > figure {
+    flex: 0 0 78%;
+    scroll-snap-align: start;
+  }
+}
+
+/* Two or more images: padded and tinted. A single image runs full width with neither. */
+.gallery__section--multi {
+  padding: var(--gallery-pad);
+  background: var(--color-overlay);
+}
+
+/* Mobile and tablet screenshots sit in a plain white device shape: just the outline, no notch or
+   buttons. The one place on the site with rounded corners. */
+.phone {
+  --phone-pad: var(--space-2);
+  --phone-radius: var(--space-5);
+  padding: var(--phone-pad);
+  background: var(--color-invert);
+  border-radius: var(--phone-radius);
+}
+
+.phone--tablet {
+  --phone-pad: var(--space-5);
+  --phone-radius: var(--space-6);
+}
+
+.gallery .phone img {
+  border-radius: calc(var(--phone-radius) - var(--phone-pad));
+}
+
+.gallery__embed {
+  display: block;
+  width: 100%;
+  height: var(--embed-height, 47.5rem); /* stacked layout on narrow screens */
+  border: 0;
+}
+
+/* The embedded page switches to its wide layout at 992px of its own width, which the gallery
+   reaches at a 68rem window */
+@media (min-width: 68rem) {
+  .gallery__embed {
+    height: var(--embed-height, 27.5rem);
+  }
 }
 
 .gallery img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.gallery figcaption {
+  margin-top: var(--space-2);
+  max-width: var(--measure);
+}
+
+
+
+/* Next project: its hero peeks in below the footer. Script lifts it to fill the screen. */
+.next-hero {
+  --peek: 30vh;
+  position: relative;
+  height: var(--peek);
+}
+
+.next-hero__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.next-hero__link {
+  display: block;
+  height: 100%;
+  text-decoration: none;
+}
+
+/* Shows only the top of the hero; script grows it upward as it rises */
+.next-hero__layer {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  will-change: transform, height;
+}
+
+.next-hero__media {
+  width: 100%;
+  height: var(--hero-height);
+}
+
+.next-hero__media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.gallery__item--full img {
-  aspect-ratio: 3 / 2;
+/* Darkens the top of the peek, behind the title; fades out as the hero rises, so the hero
+   that opens next has none */
+.next-hero__scrim {
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--peek);
+  background: linear-gradient(var(--color-scrim) 55%, transparent);
+  pointer-events: none;
 }
 
-.gallery__item--half img {
-  aspect-ratio: 1;
+.next-hero__text {
+  position: absolute;
+  top: var(--space-6);
+  left: var(--gutter);
+  right: var(--gutter);
+  display: grid;
+  gap: var(--space-1);
+  color: var(--color-invert);
 }
 
-.next-project {
-  display: inline-block;
-  text-decoration: none;
+/* The title runs the full width of the content area rather than the intro measure */
+.next-hero__text .intro {
+  max-width: none;
 }
 
 /* Design system page */
