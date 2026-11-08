@@ -435,7 +435,6 @@ a:hover {
 /* Scrolls away with the page */
 .nav {
   height: var(--nav-height);
-  view-transition-name: site-header;
 }
 
 .nav__inner {
@@ -635,7 +634,7 @@ html:has(.case) .nav__brand {
 }
 
 ::view-transition-group(project-hero) {
-  /* Above the header name (1), under the close button (10) */
+  /* Above the page, under the close button (10) */
   z-index: 5;
   animation-duration: 1s;
   /* Even in and out: no lunge at the start, no crawl at the end */
@@ -713,36 +712,10 @@ html[data-returning]::view-transition-new(root) {
   }
 }
 
-/* Layers during a page transition, lowest to highest: the page, the header name, the morphing
-   hero (so it scales over the name), then the close button. */
-::view-transition-group(site-header) {
-  z-index: 1;
-}
-
+/* Layers during a page transition, lowest to highest: the page (header included), the
+   morphing hero, then the close button. */
 ::view-transition-group(back-link) {
   z-index: 10;
-}
-
-/* The name only shows on the home page. Leaving for a project, it stays with the page it belongs
-   to and fades out as that page gives way (late, when the hero is growing in from the list);
-   coming back, it fades in once the page is there. */
-::view-transition-old(site-header) {
-  mix-blend-mode: normal;
-  animation: vt-fade-out 0.35s var(--ease-out) both;
-}
-
-html[data-hero-morph]::view-transition-old(site-header) {
-  animation-duration: 0.4s;
-  animation-delay: 0.7s;
-}
-
-::view-transition-new(site-header) {
-  mix-blend-mode: normal;
-  animation: none;
-}
-
-html[data-returning]::view-transition-new(site-header) {
-  animation: vt-fade-in 0.5s var(--ease-out) 0.4s both;
 }
 
 /* The Back link: between two case studies it is on both pages, so it just stays put. It only
