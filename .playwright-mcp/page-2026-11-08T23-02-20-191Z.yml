@@ -1,0 +1,74 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e3]
+  - main [ref=e5]:
+    - link "Close project" [ref=e6] [cursor=pointer]:
+      - /url: /#work
+    - generic [ref=e9]:
+      - img "Sony Scene - A community platform for Australian photographers" [ref=e12]
+      - region "Overview" [ref=e13]:
+        - generic [ref=e14]:
+          - heading "Sony Scene - A community platform for Australian photographers" [level=1] [ref=e15]
+          - generic [ref=e17]:
+            - paragraph [ref=e19]: "Replace with the overview: who the client is, what they needed, and what you made for them. Two or three sentences is plenty."
+            - generic [ref=e20]:
+              - heading "What I did" [level=2] [ref=e21]
+              - list "What I did" [ref=e22]:
+                - listitem [ref=e23]: Surveys
+                - listitem [ref=e24]: Workshops
+                - listitem [ref=e25]: Information architecture
+                - listitem [ref=e26]: Wireframes
+                - listitem [ref=e27]: UI design
+                - listitem [ref=e28]: Prototyping
+                - listitem [ref=e29]: Component build
+                - listitem [ref=e30]: Front-end development
+                - listitem [ref=e31]: Accessibility review
+      - region "Project images" [ref=e32]:
+        - generic [ref=e35]:
+          - figure [ref=e36]:
+            - img "Host profile page on desktop" [ref=e37]
+          - figure [ref=e38]:
+            - img "Host profile page on desktop, second view" [ref=e39]
+      - region "What I did" [ref=e40]:
+        - paragraph [ref=e42]: "Replace with a short paragraph on what you did: the starting point, the key decisions, and how the pieces came together."
+      - region "More project images" [ref=e43]:
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - figure [ref=e47]:
+              - img "Community gallery photo viewer with photographer and camera details" [ref=e48]
+            - figure [ref=e49]:
+              - img "Community gallery photo viewer, second photo" [ref=e50]
+          - generic [ref=e51]:
+            - figure [ref=e52]:
+              - img "Community gallery page on desktop" [ref=e53]
+            - figure [ref=e54]:
+              - img "Community gallery page on desktop, second view" [ref=e55]
+          - generic [ref=e56]:
+            - figure [ref=e57]:
+              - img "Host profile on mobile, first screen" [ref=e59]
+            - figure [ref=e60]:
+              - img "Host profile on mobile, second screen" [ref=e62]
+          - generic [ref=e63]:
+            - figure [ref=e64]:
+              - img "Community gallery on mobile, first screen" [ref=e66]
+            - figure [ref=e67]:
+              - img "Community gallery on mobile, second screen" [ref=e69]
+      - region "Design system" [ref=e70]:
+        - generic [ref=e72]:
+          - heading "Design system" [level=2] [ref=e73]
+          - paragraph [ref=e74]: "Replace with a short paragraph on the design system: what it covers and how it keeps the site consistent."
+      - region "More project images" [ref=e75]:
+        - figure [ref=e79]:
+          - 'img "Sony Scene design system: colours, type, buttons, form fields, alerts and components" [ref=e80]'
+  - region "Next project" [ref=e81]:
+    - link "Next project Musicvo - An interactive music toy" [ref=e82] [cursor=pointer]:
+      - /url: /work/musicvo
+      - generic [ref=e85]:
+        - generic [ref=e86]: Next project
+        - generic [ref=e87]: Musicvo - An interactive music toy
+  - generic [ref=e90]:
+    - button "Menu" [ref=e91]
+    - button "Inspect" [ref=e97]
+    - button "Audit" [ref=e101]
+    - button "Settings" [ref=e106]

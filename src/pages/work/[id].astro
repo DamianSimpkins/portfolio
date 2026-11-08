@@ -58,7 +58,7 @@ const divider = onDark ? 'rgb(255 255 255 / 0.2)' : 'rgb(0 0 0 / 0.12)';
       set:html={`<style>:root{${background ? `--color-bg:${background};--color-border:${divider};` : ''}${onDark ? '--color-text:#ffffff;--color-text-muted:rgb(255 255 255 / 0.65);--color-overlay:rgb(255 255 255 / 0.08);' : ''}${panel ? `--color-overlay:${panel};` : ''}}</style>`}
     />
   )}
-  <a class="back-link" href="/#work" data-back={project.id} aria-label="Close project">
+  <a class="back-link" href="/" data-back={project.id} aria-label="Close project">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke-width="2" stroke-linecap="square" aria-hidden="true">
       <path d="M5 5l14 14M19 5L5 19" />
     </svg>

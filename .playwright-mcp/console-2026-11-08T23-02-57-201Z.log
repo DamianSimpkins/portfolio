@@ -1,0 +1,4 @@
+[      21ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:4321/projects/musicvo/hero.jpg:0
+[     262ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:4321/projects/musicvo/hero.jpg:0
+[     862ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:4321/projects/musicvo/hero.jpg:0
+[     901ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:4321/projects/musicvo/hero.jpg:0

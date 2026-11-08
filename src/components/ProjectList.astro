@@ -260,8 +260,10 @@ const { projects } = Astro.props;
     const row = id && document.querySelector('.project-list__row[data-id="' + id + '"]');
     if (!transition || !preview || !row || !matchMedia('(min-width: 48rem) and (hover: hover)').matches) return;
 
-    row.scrollIntoView({ block: 'center' });
+    // The list opens at the top of the page; if this row is below the fold there is nothing
+    // to shrink into, so the hero just fades out with the rest of the page
     const rect = row.getBoundingClientRect();
+    if (rect.bottom < 0 || rect.top > innerHeight) return;
     const x = rect.left + rect.width / 2 - preview.offsetWidth / 2;
     preview.querySelectorAll('img').forEach((img) => img.classList.toggle('is-active', img.dataset.id === id));
     preview.style.transition = 'none';
