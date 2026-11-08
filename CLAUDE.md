@@ -2,7 +2,7 @@
 
 ## Project
 
-Astro static portfolio site. Pages: home, work (index + detail), about, contact.
+Astro static portfolio site. Pages: home and case study pages (`/work/<id>`).
 
 ## Dev server
 

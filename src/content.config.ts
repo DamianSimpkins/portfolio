@@ -10,8 +10,8 @@ const galleryImage = z.object({
   // Optional line shown under the image
   caption: z.string().optional(),
   layout: z.enum(['full', 'half', 'third']).default('full'),
-  // Shows the image in a plain white phone or tablet frame (for mobile and tablet screenshots)
-  frame: z.enum(['phone', 'tablet']).optional(),
+  // Shows the image in a plain white phone frame (for mobile screenshots)
+  frame: z.enum(['phone']).optional(),
   // `src` is an interactive HTML page, shown live in a frame instead of as a picture (`alt` titles it)
   embed: z.boolean().optional(),
   // Overrides the frame height (rem) at every screen width

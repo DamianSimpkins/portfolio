@@ -70,9 +70,8 @@ const { title, cover } = project.data;
       // Fills the screen behind the rising hero, so on tall windows (where the hero is shorter
       // than the screen) the old page doesn't show beneath it
       backdrop.style.opacity = String(Math.min(1, progress * 3));
-      // Blocks what is under it once it's showing, so the header can tell it is covering that
+      // Blocks what is under it once it's showing, so nothing behind it can be clicked
       backdrop.style.pointerEvents = progress > 0.05 ? 'auto' : 'none';
-      dispatchEvent(new Event('header-tone'));
     };
 
     const commit = () => {

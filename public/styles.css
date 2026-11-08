@@ -432,15 +432,9 @@ a:hover {
    ========================================================================== */
 
 /* Nav */
-/* Sticky. The name and the Back link each take their colour from the pixels directly behind
-   them (worked out by script): white or dark ink over an image, whichever reads better, and
-   the normal text colour over the plain page. Case studies, which open on a hero, start white
-   until it has been read, so there is no flash. */
+/* Scrolls away with the page */
 .nav {
   height: var(--nav-height);
-  position: sticky;
-  top: 0;
-  z-index: 30;
   view-transition-name: site-header;
 }
 
@@ -452,32 +446,9 @@ a:hover {
   gap: var(--stack);
 }
 
-.nav__brand,
-.back-link {
-  color: var(--color-text);
-  transition: color 0.5s var(--ease-in-out);
-}
-
-html:has(.case-hero) .nav__brand:not([data-tone]),
-html:has(.case-hero) .back-link:not([data-tone]),
-.nav__brand[data-tone='light'],
-.back-link[data-tone='light'] {
-  color: var(--color-invert);
-}
-
-.nav__brand[data-tone='dark'],
-.back-link[data-tone='dark'] {
-  color: var(--color-ink);
-}
-
-.nav__brand[data-tone='page'],
-.back-link[data-tone='page'] {
-  color: var(--color-text);
-}
-
 .nav__brand {
+  color: var(--color-text);
   font-weight: 400;
-  text-decoration: none;
 }
 
 /* Footer */
@@ -570,7 +541,7 @@ html:has(.case) .nav__brand {
   visibility: hidden;
 }
 
-/* Case study hero: full width at --hero-height, running up under the sticky header.
+/* Case study hero: full width at --hero-height, running up under the header.
    It stays pinned while the content below scrolls up over it. */
 .case-hero {
   position: sticky;
@@ -1072,7 +1043,7 @@ html[data-returning]::view-transition-new(site-header) {
   background: var(--color-overlay);
 }
 
-/* Mobile and tablet screenshots sit in a plain white device shape: just the outline, no notch or
+/* Mobile screenshots sit in a plain white device shape: just the outline, no notch or
    buttons. The one place on the site with rounded corners. */
 .phone {
   --phone-pad: var(--space-2);
@@ -1080,11 +1051,6 @@ html[data-returning]::view-transition-new(site-header) {
   padding: var(--phone-pad);
   background: var(--color-invert);
   border-radius: var(--phone-radius);
-}
-
-.phone--tablet {
-  --phone-pad: var(--space-5);
-  --phone-radius: var(--space-6);
 }
 
 .gallery .phone img {
