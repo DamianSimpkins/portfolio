@@ -102,6 +102,8 @@
 @media (max-width: 47.99rem) {
   :root {
     --hero-height: min(66.667vw, 100vh);
+    /* Tighter gaps between the header, intro and project list (case studies set their own) */
+    --section-gap: var(--space-7);
   }
 }
 
