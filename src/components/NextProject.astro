@@ -54,6 +54,14 @@ const { title, cover, background } = project.data;
     let pull = 0;
     let resetTimer = 0;
     let touchStart = 0;
+    let touching = false;
+
+    // Warm the next page so it opens the moment the rise finishes, not after a pause on a
+    // full-screen hero while it loads
+    const prefetch = document.createElement('link');
+    prefetch.rel = 'prefetch';
+    prefetch.href = link.href;
+    document.head.append(prefetch);
 
     const atBottom = () => scrollY + innerHeight >= document.documentElement.scrollHeight - 2;
 
@@ -116,12 +124,16 @@ const { title, cover, background } = project.data;
       layer.style.transition = 'none';
       render((pull / START_DISTANCE) * HINT);
       clearTimeout(resetTimer);
-      resetTimer = window.setTimeout(() => {
-        // Stopped short: settle back down
-        pull = 0;
-        layer.style.transition = 'height 0.6s var(--ease-out), transform 0.6s var(--ease-out)';
-        render(0);
-      }, 300);
+      // With a finger down, a pause is not letting go: settle only when it lifts
+      if (!touching) resetTimer = window.setTimeout(settle, 300);
+    };
+
+    // Stopped short: settle back down
+    const settle = () => {
+      if (committed) return;
+      pull = 0;
+      layer.style.transition = 'height 0.6s var(--ease-out), transform 0.6s var(--ease-out)';
+      render(0);
     };
 
     addEventListener(
@@ -131,12 +143,33 @@ const { title, cover, background } = project.data;
       },
       { passive: true },
     );
-    addEventListener('touchstart', (event) => (touchStart = event.touches[0].clientY), { passive: true });
+    addEventListener(
+      'touchstart',
+      (event) => {
+        touching = true;
+        touchStart = event.touches[0].clientY;
+        // Measure the pull from where this touch is, not from the previous one
+        pull = 0;
+      },
+      { passive: true },
+    );
+    const lift = () => {
+      touching = false;
+      if (pull > 0) resetTimer = window.setTimeout(settle, 150);
+    };
+    addEventListener('touchend', lift, { passive: true });
+    addEventListener('touchcancel', lift, { passive: true });
     addEventListener(
       'touchmove',
       (event) => {
+        // Count only the drag made at the bottom, not the scrolling that got you there
+        if (!atBottom()) {
+          touchStart = event.touches[0].clientY;
+          pull = 0;
+          return;
+        }
         const dy = touchStart - event.touches[0].clientY;
-        if (atBottom() && dy > 0) add(dy - pull);
+        if (dy > 0) add(dy - pull);
       },
       { passive: true },
     );
