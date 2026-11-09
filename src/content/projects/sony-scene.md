@@ -5,6 +5,7 @@ year: 2026
 summary: One-line summary of the project and the outcome it delivered.
 type: Website design
 role: [Design, Development]
+draft: true
 order: 4
 background: "#FDEFEA"
 panel: "#FADDD3"

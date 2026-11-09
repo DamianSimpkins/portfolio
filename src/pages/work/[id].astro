@@ -7,7 +7,7 @@ import NextProject from '../../components/NextProject.astro';
 import Gallery from '../../components/Gallery.astro';
 
 export async function getStaticPaths() {
-  const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+  const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort((a, b) => a.data.order - b.data.order);
   return projects.map((project, i) => ({
     params: { id: project.id },
     props: { project, next: projects[(i + 1) % projects.length] },

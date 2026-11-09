@@ -31,6 +31,8 @@ const projects = defineCollection({
     cover: z.string().optional(),
     url: z.string().url().optional(),
     order: z.number().default(0),
+    // Unfinished: left out of the site entirely (home list, case study page and next-project links)
+    draft: z.boolean().default(false),
     // Deliverables list, shown under the overview
     services: z.array(z.string()).default([]),
     // Text sections after the first gallery, each with its own label (e.g. "What I did", "Outcome")
