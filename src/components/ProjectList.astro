@@ -12,7 +12,7 @@ const { projects } = Astro.props;
   <ul class="project-list__items" role="list">
     {projects.map(({ id, data }) => (
       <li data-reveal>
-        <a class="project-list__row" href={`/work/${id}`} data-id={id}>
+        <a class="project-list__row" href={`/work/${id}`} data-id={id} data-cover={data.cover}>
           <span class="heading-04 project-list__title">{data.title}</span>
         </a>
       </li>
@@ -177,6 +177,24 @@ const { projects } = Astro.props;
         (event) => enabled.matches && !document.documentElement.hasAttribute('data-returning') && show(index, event),
       );
     });
+
+    // The preview is a small file, but it grows into the case study's full-size hero. Fetch each
+    // hero once the page has settled, and the moment a row is hovered, so that picture is already
+    // in the cache when the morph lands on it. Wide pointer devices only: phones don't get the morph.
+    const fetched = new Set<string>();
+    const prefetch = (src: string | undefined, priority: 'low' | 'auto') => {
+      if (!src || fetched.has(src) || !enabled.matches) return;
+      fetched.add(src);
+      const img = new Image();
+      img.fetchPriority = priority;
+      img.src = src;
+      img.decode().catch(() => {});
+    };
+    rows.forEach((row) => row.addEventListener('pointerenter', () => prefetch(row.dataset.cover, 'auto')));
+    const warmAll = () => rows.forEach((row) => prefetch(row.dataset.cover, 'low'));
+    const whenIdle = () => ('requestIdleCallback' in window ? requestIdleCallback(warmAll) : setTimeout(warmAll, 1000));
+    if (document.readyState === 'complete') whenIdle();
+    else addEventListener('load', whenIdle, { once: true });
 
     // Name the preview so the browser morphs it into the hero on the case study page
     rows.forEach((row, index) => {
