@@ -1,0 +1,11 @@
+# Cloudflare reads this file at deploy time. Without it, every file is re-checked on every visit.
+# Images and icons keep for a day. File names don't change when a picture is replaced, so a
+# longer time would leave visitors on the old one for that long.
+/projects/*
+  Cache-Control: public, max-age=86400
+/favicon.svg
+  Cache-Control: public, max-age=86400
+/favicon-32.png
+  Cache-Control: public, max-age=86400
+/apple-touch-icon.png
+  Cache-Control: public, max-age=86400

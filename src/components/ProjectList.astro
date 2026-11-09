@@ -20,7 +20,10 @@ const { projects } = Astro.props;
   </ul>
   <div class="project-list__preview" aria-hidden="true">
     <div class="project-list__frame">
-      {projects.map(({ id, data }) => data.cover && <img src={data.cover} alt="" data-id={id} />)}
+      {projects.map(({ id, data }) => {
+        const src = data.thumb ?? data.cover;
+        return src && <img src={src} alt="" data-id={id} />;
+      })}
     </div>
   </div>
 </div>

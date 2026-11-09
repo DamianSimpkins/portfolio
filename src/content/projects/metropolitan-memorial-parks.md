@@ -9,6 +9,7 @@ order: 2
 background: "#FBEBD0"
 panel: "#FDF3E3"
 cover: /projects/metropolitan-memorial-parks/hero.png
+thumb: /projects/metropolitan-memorial-parks/thumb.jpg
 sections:
   - label: Memorial planner
     before: 5

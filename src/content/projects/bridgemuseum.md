@@ -7,6 +7,7 @@ type: Website design
 role: [Design, Development]
 order: 3
 cover: /projects/bridgemuseum/hero.png
+thumb: /projects/bridgemuseum/thumb.jpg
 background: "#00096B"
 panel: "#141D77"
 sections:

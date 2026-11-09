@@ -7,6 +7,7 @@ type: Project type
 role: [Design, Development]
 order: 1
 cover: /projects/gwmwater/desktops.jpg
+thumb: /projects/gwmwater/thumb.jpg
 background: "#EBF8FE"
 panel: "#D1EFFC"
 sections:

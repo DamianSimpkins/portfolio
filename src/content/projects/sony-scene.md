@@ -10,6 +10,7 @@ order: 4
 background: "#FDEFEA"
 panel: "#FADDD3"
 cover: /projects/sony-scene/gallery-01.png
+thumb: /projects/sony-scene/thumb.jpg
 sections:
   - label: What I did
     text: >-

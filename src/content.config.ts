@@ -29,6 +29,8 @@ const projects = defineCollection({
     type: z.string().optional(),
     role: z.array(z.string()).default([]),
     cover: z.string().optional(),
+    // Small version of the cover for the home list preview (same proportions, about 1000px wide)
+    thumb: z.string().optional(),
     url: z.string().url().optional(),
     order: z.number().default(0),
     // Unfinished: left out of the site entirely (home list, case study page and next-project links)
