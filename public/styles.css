@@ -1070,6 +1070,8 @@ html[data-returning]::view-transition-new(root) {
 .next-hero {
   --peek: 30vh;
   position: relative;
+  /* Above the case study sections (z-index 1), so it rises over them, not under */
+  z-index: 2;
   height: var(--peek);
 }
 
