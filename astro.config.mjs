@@ -12,5 +12,6 @@ const devDesignSystem = {
 };
 
 export default defineConfig({
+  site: 'https://damiansimpkins.com',
   integrations: [devDesignSystem],
 });
