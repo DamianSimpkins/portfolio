@@ -113,6 +113,13 @@ const { src, alt = '', id } = Astro.props;
       zoom();
     }
 
+    // Once the content has fully covered the hero it is switched off, so nothing of it can show
+    // through while the page paints during a fast scroll (seen on iOS)
+    const cover = () => (hero.style.visibility = scrollY > hero.offsetHeight ? 'hidden' : '');
+    addEventListener('scroll', cover, { passive: true });
+    addEventListener('resize', cover);
+    cover();
+
     const back = document.querySelector<HTMLAnchorElement>('[data-back]');
     back?.addEventListener('click', (event) => {
       try {
