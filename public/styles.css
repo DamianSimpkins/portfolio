@@ -546,6 +546,9 @@ html:has(.case) .nav__brand {
 .case-hero {
   position: sticky;
   top: 0;
+  /* Explicit stacking: the content sections below sit above the hero (z-index 1). Left to
+     source order, Safari on iOS can paint the zoomed hero over them. */
+  z-index: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -557,6 +560,7 @@ html:has(.case) .nav__brand {
 /* Content sections sit over the pinned hero, so they need to cover it */
 .case > .section {
   position: relative;
+  z-index: 1;
   background: var(--color-bg);
 }
 

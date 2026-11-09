@@ -105,6 +105,8 @@ const { src, alt = '', id } = Astro.props;
     // instead (20% by the time the content has covered the hero, as styles.css does)
     if (!CSS.supports('animation-timeline: scroll()') && !reduce.matches) {
       const img = hero.querySelector<HTMLElement>('img')!;
+      // Own layer from the start, so Safari doesn't promote it (and reorder it) mid-scroll
+      img.style.willChange = 'scale';
       const zoom = () => (img.style.scale = String(1 + 0.2 * Math.min(1, Math.max(0, scrollY / hero.offsetHeight))));
       addEventListener('scroll', zoom, { passive: true });
       addEventListener('resize', zoom);
