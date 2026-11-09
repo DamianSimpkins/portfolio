@@ -150,6 +150,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Selected text is the page inverted: text colour behind, page colour on top. Case studies swap
+   both tokens, so it follows their light or dark colours. */
+::selection {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
 main {
   flex: 1;
 }
