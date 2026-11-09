@@ -1029,13 +1029,13 @@ html[data-returning]::view-transition-new(root) {
 /* A very slight lift for each image in those rows (the phone frame carries it for phones) */
 .gallery__section--multi img:not(.phone img),
 .gallery__section--multi .phone {
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.04), 0 4px 14px rgb(0 0 0 / 0.04);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.03), 0 4px 14px rgb(0 0 0 / 0.03);
 }
 
 /* Mobile screenshots sit in a plain white device shape: just the outline, no notch or
    buttons. The one place on the site with rounded corners. */
 .phone {
-  --phone-pad: var(--space-3);
+  --phone-pad: 0.625rem; /* 10px */
   --phone-radius: var(--space-5);
   padding: var(--phone-pad);
   background: var(--color-invert);
