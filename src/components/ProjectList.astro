@@ -13,6 +13,9 @@ const { projects } = Astro.props;
     {projects.map(({ id, data }) => (
       <li data-reveal>
         <a class="project-list__row" href={`/work/${id}`} data-id={id} data-cover={data.cover}>
+          {(data.thumb ?? data.cover) && (
+            <img class="project-list__thumb" src={data.thumb ?? data.cover} alt="" loading="lazy" />
+          )}
           <span class="heading-04 project-list__title">{data.title}</span>
         </a>
       </li>
@@ -203,7 +206,15 @@ const { projects } = Astro.props;
         try {
           sessionStorage.setItem('heroEnter', '1');
         } catch {}
-        if (!enabled.matches) return;
+        if (!enabled.matches) {
+          // Phones and touch: the row's own thumbnail grows into the hero
+          const thumb = row.querySelector<HTMLElement>('.project-list__thumb');
+          try {
+            sessionStorage.setItem('heroMorph', '1');
+          } catch {}
+          if (thumb) thumb.style.viewTransitionName = 'project-hero';
+          return;
+        }
         // Clicking without hovering first (e.g. straight after coming back, when hover is held
         // off until the mouse moves): bring up this project's thumbnail at the pointer, fully
         // shown, so there is still something to grow into the hero
@@ -255,6 +266,7 @@ const { projects } = Astro.props;
     // Back from the cache: forget the thumbnail left over from the last click
     addEventListener('pageshow', (event) => {
       preview.style.viewTransitionName = '';
+      list.querySelectorAll<HTMLElement>('.project-list__thumb').forEach((thumb) => (thumb.style.viewTransitionName = ''));
       if (!event.persisted) return;
       preview.style.transition = '';
       hide();
@@ -279,7 +291,19 @@ const { projects } = Astro.props;
     const transition = event.viewTransition;
     const preview = document.querySelector('.project-list__preview');
     const row = id && document.querySelector('.project-list__row[data-id="' + id + '"]');
-    if (!transition || !preview || !row || !matchMedia('(min-width: 48rem) and (hover: hover)').matches) return;
+    if (!transition || !preview || !row) return;
+
+    // Phones and touch: the hero shrinks into the row's own thumbnail
+    if (!matchMedia('(min-width: 48rem) and (hover: hover) and (pointer: fine)').matches) {
+      const thumb = row.querySelector('.project-list__thumb');
+      if (!thumb) return;
+      const r = thumb.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > innerHeight) return;
+      thumb.style.viewTransitionName = 'project-hero';
+      const clear = () => (thumb.style.viewTransitionName = '');
+      transition.finished.then(clear, clear);
+      return;
+    }
 
     // The list opens at the top of the page; if this row is below the fold there is nothing
     // to shrink into, so the hero just fades out with the rest of the page

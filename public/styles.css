@@ -784,6 +784,29 @@ html[data-returning]::view-transition-new(root) {
   transition: color 0.2s;
 }
 
+/* Phones and touch: each row carries its own thumbnail, which grows into the hero */
+.project-list__thumb {
+  display: block;
+  width: 100%;
+  /* Same proportions as the case study hero (3:2 on phones), so the picture grows and shrinks
+     without its crop changing at the end of the move */
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  margin-bottom: var(--space-3);
+}
+
+@media (max-width: 47.99rem) {
+  .project-list__thumb {
+    aspect-ratio: 3 / 2;
+  }
+}
+
+@media (min-width: 48rem) and (hover: hover) and (pointer: fine) {
+  .project-list__thumb {
+    display: none;
+  }
+}
+
 .project-list__title {
   display: block;
   font-weight: 400;
