@@ -13,13 +13,15 @@ const { items } = Astro.props;
 
 // Images per row for each layout
 const columns = { full: 1, half: 2, third: 3 };
+// Images per section: thirds can run to two rows (six images) in one section
+const maxPerSection = { full: 1, half: 2, third: 6 };
 
 // Consecutive images with the same layout fill one row: a full image is its own, two
-// halves make a pair, three thirds make a row.
+// halves make a pair, up to six thirds make two rows of three.
 const sections: Item[][] = [];
 for (const item of items) {
   const last = sections[sections.length - 1];
-  if (last && last[0].layout === item.layout && last.length < columns[item.layout]) last.push(item);
+  if (last && last[0].layout === item.layout && last.length < maxPerSection[item.layout]) last.push(item);
   else sections.push([item]);
 }
 

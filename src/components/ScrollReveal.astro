@@ -32,6 +32,11 @@
     });
     // Never wait forever if the event doesn't arrive
     setTimeout(resolve, 2500);
+    // Scrolling before the arrival has settled: don't hold the content back, or the page scrolls
+    // up showing nothing and the content only comes in a moment later
+    ['wheel', 'touchstart', 'keydown', 'scroll'].forEach((type) =>
+      addEventListener(type, resolve, { once: true, passive: true }),
+    );
   });
 </script>
 

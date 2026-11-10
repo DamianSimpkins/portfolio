@@ -24,6 +24,31 @@ const { src, alt = '', id } = Astro.props;
   if (!enter) document.documentElement.setAttribute('data-no-hero-enter', '');
   // Arriving by the thumbnail growing into the hero: the page waits under it (see styles.css)
   if (morph) document.documentElement.setAttribute('data-hero-morph', '');
+  // Scrolling while the hero is still landing: the page scrolls on underneath the transition's
+  // picture of the hero, which hides it, and when the transition ends the content appears to jump
+  // up in one go. End the transition as soon as scrolling starts, so the page is simply there
+  // under your scroll from the first frame.
+  addEventListener('pagereveal', function (event) {
+    var transition = event.viewTransition;
+    if (!transition) return;
+    var skip = function () {
+      removeEventListener('wheel', skip);
+      removeEventListener('touchstart', skip);
+      removeEventListener('keydown', skip);
+      try {
+        transition.skipTransition();
+      } catch (e) {}
+    };
+    addEventListener('wheel', skip, { passive: true });
+    addEventListener('touchstart', skip, { passive: true });
+    addEventListener('keydown', skip);
+    var done = function () {
+      removeEventListener('wheel', skip);
+      removeEventListener('touchstart', skip);
+      removeEventListener('keydown', skip);
+    };
+    transition.finished.then(done, done);
+  });
 </script>
 <div class="case-hero" data-case-hero data-project-id={id}>
   <div class="case-hero__media">
