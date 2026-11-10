@@ -51,6 +51,7 @@ services:
   - UI design
   - Prototyping
   - Front-end components
+  - AI-assisted development
 galleryBottom:
   - { src: /projects/gwmwater/desktop-01.jpg, alt: "Homepage design on desktop", layout: half }
   - { src: /projects/gwmwater/desktop-02.jpg, alt: "Inner page design on desktop", layout: half }

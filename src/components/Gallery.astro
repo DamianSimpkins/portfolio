@@ -12,9 +12,9 @@ interface Props {
 const { items } = Astro.props;
 
 // Images per row for each layout
-const columns = { full: 1, half: 2, third: 3 };
+const columns = { full: 1, half: 2, third: 3, grid: 2 };
 // Images per section: thirds can run to two rows (six images) in one section
-const maxPerSection = { full: 1, half: 2, third: 6 };
+const maxPerSection = { full: 1, half: 2, third: 6, grid: 4 };
 
 // Consecutive images with the same layout fill one row: a full image is its own, two
 // halves make a pair, up to six thirds make two rows of three.

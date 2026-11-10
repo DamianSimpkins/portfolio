@@ -24,13 +24,13 @@ const inline = sections.filter((section) => section.before !== undefined);
 const bottomParts = galleryBottom.length
   ? [...new Set(inline.map((section) => section.before!))]
       .sort((a, b) => a - b)
-      .reduce<{ start: number; end?: number; section?: (typeof sections)[number] }[]>(
+      .reduce<{ start: number; end?: number; sections: typeof sections }[]>(
         (parts, at) => {
           parts[parts.length - 1].end = at;
-          parts.push({ start: at, section: inline.find((section) => section.before === at) });
+          parts.push({ start: at, sections: inline.filter((section) => section.before === at) });
           return parts;
         },
-        [{ start: 0 }],
+        [{ start: 0, sections: [] }],
       )
   : [];
 
@@ -100,14 +100,17 @@ const divider = onDark ? 'rgb(255 255 255 / 0.2)' : 'rgb(0 0 0 / 0.12)';
     {gap.map(({ label, text }) => (
       <section class="section" aria-label={label}>
         <div class="container split">
-          <p class="body" data-reveal>{text}</p>
+          <div class="stack" data-reveal>
+            <h2 class="heading-05">{label}</h2>
+            {text.split(/\n+/).map((paragraph) => <p class="body">{paragraph}</p>)}
+          </div>
         </div>
       </section>
     ))}
 
-    {bottomParts.map(({ start, end, section }) => (
+    {bottomParts.map(({ start, end, sections: parts }) => (
       <>
-        {section && (
+        {parts.map((section) => (
           <section class="section" aria-label={section.label}>
             <div class="container split">
               <div class="stack" data-reveal>
@@ -116,7 +119,7 @@ const divider = onDark ? 'rgb(255 255 255 / 0.2)' : 'rgb(0 0 0 / 0.12)';
               </div>
             </div>
           </section>
-        )}
+        ))}
         {galleryBottom.slice(start, end).length > 0 && (
           <section class="section" aria-label="More project images">
             <div class="container">
