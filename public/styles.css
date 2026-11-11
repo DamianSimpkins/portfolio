@@ -1050,6 +1050,19 @@ html[data-returning]::view-transition-new(root) {
   }
 }
 
+/* A row at one height: each image is as wide as its proportions need (from 48rem; below that it
+   is the side-swipe row like any other) */
+@media (min-width: 48rem) {
+  .gallery__section--row {
+    display: flex;
+  }
+
+  .gallery__section--row > figure {
+    flex: var(--ratio) 1 0;
+    min-width: 0;
+  }
+}
+
 /* Two or more images: padded and tinted. A single image runs full width with neither. */
 .gallery__section--multi {
   padding: var(--gallery-pad);

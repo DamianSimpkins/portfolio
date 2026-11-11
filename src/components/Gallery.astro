@@ -12,9 +12,9 @@ interface Props {
 const { items } = Astro.props;
 
 // Images per row for each layout
-const columns = { full: 1, half: 2, third: 3, grid: 2 };
+const columns = { full: 1, half: 2, third: 3, grid: 2, row: 3 };
 // Images per section: thirds can run to two rows (six images) in one section
-const maxPerSection = { full: 1, half: 2, third: 6, grid: 4 };
+const maxPerSection = { full: 1, half: 2, third: 6, grid: 4, row: 3 };
 
 // Consecutive images with the same layout fill one row: a full image is its own, two
 // halves make a pair, up to six thirds make two rows of three.
@@ -43,11 +43,11 @@ await Promise.all(
 <div class="gallery">
   {sections.map((section) => (
     <div
-      class:list={['gallery__section', section.length > 1 && 'gallery__section--multi']}
+      class:list={['gallery__section', section.length > 1 && 'gallery__section--multi', section[0].layout === 'row' && 'gallery__section--row']}
       style={`--columns: ${columns[section[0].layout]}`}
     >
       {section.map((item) => (
-        <figure data-reveal>
+        <figure data-reveal style={section[0].layout === 'row' && sizes.get(item.src)?.width ? `--ratio: ${sizes.get(item.src)!.width! / sizes.get(item.src)!.height!}` : undefined}>
           {item.embed ? (
             <iframe class="gallery__embed" src={item.src} title={item.alt} loading="lazy" style={item.embedHeight ? `--embed-height: ${item.embedHeight}rem` : undefined} />
           ) : item.frame ? (

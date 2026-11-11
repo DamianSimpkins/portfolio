@@ -3,13 +3,14 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 // Case study gallery image, shown at its own proportions. `full` spans the width; `half` sits
-// two-up; `third` sits three in a row; `grid` is two rows of two in one panel.
+// two-up; `third` sits three in a row; `grid` is two rows of two in one panel;
+// `row` is up to three in a row at the same height, each as wide as its proportions need.
 const galleryImage = z.object({
   src: z.string(),
   alt: z.string(),
   // Optional line shown under the image
   caption: z.string().optional(),
-  layout: z.enum(['full', 'half', 'third', 'grid']).default('full'),
+  layout: z.enum(['full', 'half', 'third', 'grid', 'row']).default('full'),
   // Shows the image in a plain white phone frame (for mobile screenshots)
   frame: z.enum(['phone']).optional(),
   // `src` is an interactive HTML page, shown live in a frame instead of as a picture (`alt` titles it)
