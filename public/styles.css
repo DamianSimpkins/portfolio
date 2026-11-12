@@ -1050,8 +1050,20 @@ html[data-returning]::view-transition-new(root) {
   }
 }
 
-/* A row at one height: each image is as wide as its proportions need (from 48rem; below that it
-   is the side-swipe row like any other) */
+/* A row at one height: each image is as wide as its proportions need. Below 48rem it is the
+   side-swipe row, with every image at the same set height instead of a share of the width. */
+@media (max-width: 47.99rem) {
+  .gallery__section--row > figure {
+    flex: 0 0 auto;
+  }
+
+  .gallery .gallery__section--row img {
+    width: auto;
+    max-width: none;
+    height: 14rem;
+  }
+}
+
 @media (min-width: 48rem) {
   .gallery__section--row {
     display: flex;
