@@ -15,7 +15,7 @@ imageBorder: true
 sections:
   - label: Why I made it
     text: |-
-      I loved tinkering with loops and drum machines from my band days, and I still drum today. I wanted to marry that world of loops and beats with something visual, so every shape you add is an instrument you can see as well as hear. It makes a different arrangement every time, and I enjoy not knowing which melodies and harmonies the shapes will make together. It really does feel like a toy, and the more I work on it, the more possibilities I see.
+      I loved tinkering with loops and drum machines from my band days. I wanted to marry that world of loops and beats with something visual, so every shape you add is an instrument you can see as well as hear. It makes a different arrangement every time, and I enjoy not knowing which melodies and harmonies the shapes will make together. It really does feel like a toy, and the more I work on it, the more possibilities I see.
   - label: How it plays
     before: 0
     text: |-
