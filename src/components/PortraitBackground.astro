@@ -1,0 +1,352 @@
+---
+// Fixed full-viewport scan-line portrait behind the page content (three.js from the CDN, model in public/portrait/).
+---
+
+<div class="portrait-bg" id="portrait-bg" aria-hidden="true">
+  <canvas class="portrait-bg__canvas" id="portrait-canvas"></canvas>
+</div>
+
+<script is:inline>
+(() => {
+  if (matchMedia('(max-width: 47.99rem)').matches) return; // no portrait on mobile
+  const start = () => {
+  // ---------- 3D head (Hunyuan 3D v3 from front, both profiles and back; 150k triangles) ----------
+  const MESH = { nV: 162620, nF: 260000, lo: [-0.3673324556699431, 0.0, -0.29975], hi: [0.3961850204774657, 0.82475102, 0.2977013363585116],
+    bin: "/portrait/model.bin",      // gzipped geometry (positions, UVs, triangle indices)
+    tex: "/portrait/texture.jpg" };  // greyscale photo texture
+
+  const hero = document.getElementById('portrait-bg');
+  const canvas = document.getElementById('portrait-canvas');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
+  } catch (e) { return; }
+  renderer.setClearColor(new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--color-page').trim() || '#ffffff'), 1);
+
+  const b64 = s => { const b = atob(s), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a.buffer; };
+
+  // ---------- Geometry: unzip in the browser, centre on the head, scale to the stage ----------
+  // Same data as before, stored losslessly: positions + UVs as 16-bit, triangle indices as differences, all gzipped.
+  // On the portfolio this blob becomes a separate .bin file fetched after the page content loads.
+  const BUST_H = 1.5, sc = BUST_H / (MESH.hi[1] - MESH.lo[1]);
+  const cx = -0.0172, cz = 0.0168;                                                           // turn around the middle of the head, not the shoulders
+  async function loadGeometry() {
+    const res = await fetch(MESH.bin);                   // loads after the page itself, so it never delays first paint
+    const buf = await new Response(res.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+    const nV = MESH.nV, nF = MESH.nF;
+    const qp = new Uint16Array(buf, 0, nV * 3), qu = new Uint16Array(buf, nV * 6, nV * 2);
+    const dl = new Int32Array(buf, nV * 10, nF * 3);
+    const ix = new Uint32Array(nF * 3);
+    for (let i = 0, acc = 0; i < ix.length; i++) { acc += dl[i]; ix[i] = acc; }   // undo the difference coding
+    const pos = new Float32Array(nV * 3), uvs = new Float32Array(nV * 2);
+    for (let i = 0; i < nV; i++) {
+      for (let a = 0; a < 3; a++) {
+        const v = MESH.lo[a] + qp[i * 3 + a] / 65535 * (MESH.hi[a] - MESH.lo[a]);
+        pos[i * 3 + a] = (a === 0 ? v - cx : a === 1 ? v - MESH.lo[1] - (MESH.hi[1] - MESH.lo[1]) * 0.5 : v - cz) * sc;
+      }
+      uvs[i * 2] = qu[i * 2] / 65535; uvs[i * 2 + 1] = qu[i * 2 + 1] / 65535;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    geo.setIndex(new THREE.BufferAttribute(ix, 1));
+    geo.computeVertexNormals();
+    geo.computeBoundingSphere();
+    return geo;
+  }
+  const Y_MIN = -BUST_H / 2, Y_MAX = BUST_H / 2;
+
+  // Greyscale photo texture baked onto the model: sets how dark each part of every line prints
+  const tex = new THREE.TextureLoader().load(MESH.tex);
+  tex.colorSpace = THREE.NoColorSpace;
+  tex.flipY = true;                                       // OBJ-style UVs (bottom-up)
+  tex.anisotropy = 4;
+
+  // ---------- Scene ----------
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 30);
+  const rig = new THREE.Group();                          // the whole bust turns on this
+  scene.add(rig);
+
+  const ROWS = 220;                                       // dense fine lines to carry the extra detail
+  const uniforms = {
+    uTex:    { value: tex },
+    uTime:   { value: 0 },
+    uMouse:  { value: new THREE.Vector2(9, 9) },          // pointer in screen space (-1..1)
+    uHover:  { value: 0 },
+    uPress:  { value: 0 },
+    uBuild:  { value: 0 },
+    uAspect: { value: 1 },
+    uRows:   { value: ROWS },
+    uYmin:   { value: Y_MIN },
+    uYmax:   { value: Y_MAX },
+    uCamDist:{ value: 5 },                                // camera distance, so line depth is measured from the head's centre
+    uReveal: { value: 0.26 },                             // radius of the revealed area (fraction of screen height)
+    uInk:    { value: 0.32 },                             // 1 = full black ink, 0.22 = faint, just noticeable
+    // Tweakable look (driven by the settings panel)
+    uWmin: { value: 0.012 }, uWmax: { value: 0.07 }, uPhotoW: { value: 0.65 }, uDetail: { value: 0.85 },
+    uCrease: { value: 0.6 }, uRim: { value: 0.25 }, uDepthBend: { value: 0.42 },
+    uSwell: { value: 3 }, uReach: { value: 40 }, uRipple: { value: 2.8 }, uVib: { value: 0.45 }, uTear: { value: 3 },
+    uPulse: { value: 1.6 }, uPulseSpeed: { value: 0.55 }, uPulseDist: { value: 0.5 }, uPulseWidth: { value: 9 },
+    uThin: { value: 0.7 }, uShimmer: { value: 1.36 },
+  };
+  const motion = { yaw: 1.15, pitch: 0.22, turnSmooth: 0.08, drawIn: 3.8, fadeOut: 1.6 };  // head turn + intro (settings panel)
+
+  const headMat = new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader: `
+      uniform float uTime, uHover, uPress, uBuild, uAspect, uRows, uYmin, uYmax, uCamDist;
+      uniform float uSwell, uReach, uRipple, uVib, uTear, uPulse, uPulseSpeed, uPulseDist, uPulseWidth, uDepthBend;
+      uniform vec2 uMouse;
+      varying vec2 vUv; varying vec3 vN; varying float vLine, vHover, vRing, vBuild;
+      varying vec2 vScr;
+      void main() {
+        vec3 p = position, n = normal;
+        float yN = (p.y - uYmin) / (uYmax - uYmin);       // 0 at the chest, 1 at the crown
+        // Intro: lines arrive top-down and drop gently into place
+        float appear = clamp((uBuild * 1.25 - (1.0 - yN)) / 0.25, 0.0, 1.0);
+        vBuild = appear;
+        // Where is this point on screen, relative to the cursor? (screen-height units)
+        vec4 c0 = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+        vec2 dv = (c0.xy / c0.w - uMouse) * vec2(uAspect, 1.0) * 0.5;
+        float d = length(dv), ang = atan(dv.y, dv.x);
+        float wob = 1.0 + 0.25 * sin(ang * 3.0 + uTime * 0.7) + 0.16 * sin(ang * 5.0 - uTime * 1.1);
+        float dw = d * wob;                                // organic, slowly changing lens edge
+        float pressAmt = smoothstep(0.05, 1.0, uPress);    // hover only reveals; the lens distortion is for pressing
+        float lens = uHover * pressAmt * exp(-dw * dw * mix(46.0, 34.0, uPress));
+        float ripple = sin(dw * mix(100.0, 155.0, uPress) - uTime * mix(4.5, 14.5, uPress)) * exp(-dw * mix(11.0, 7.2, uPress)) * uHover * pressAmt;
+        float pressOnly = smoothstep(0.5, 1.0, uPress);
+        // Big pulses: two wide waves travel out from the cursor in turn. They ripple the LINES (not the head shape),
+        // so the face stays intact while the pulses sweep across it
+        float ph1 = fract(uTime * uPulseSpeed), ph2 = fract(uTime * uPulseSpeed + 0.5);
+        float ring = (exp(-pow((dw - ph1 * uPulseDist) * uPulseWidth, 2.0)) * (1.0 - ph1)
+                    + exp(-pow((dw - ph2 * uPulseDist) * uPulseWidth, 2.0)) * (1.0 - ph2)) * uHover * pressAmt;
+        // Pressing swells the surface towards you (along its own normal, so it stays a head)
+        // Feathered version of the lens for the swell and ghost lines: much wider and softer, so the effect fades
+        // out gradually and the lines never bunch into a hard ring at its edge
+        float lensSoft = uHover * pressAmt * exp(-dw * dw * uReach);
+        p += n * (lensSoft * (0.021 + 0.04 * uPress) * uSwell + ripple * (0.0035 + 0.0127 * uPress) * uRipple); // ~15% stronger swell and ripple, slightly wider
+        // Lines are horizontal scan lines across the screen (same as the earlier versions), lifted by the form's depth
+        // towards the viewer, so they bend smoothly over the face instead of following the model's lumps
+        vec4 mv0 = modelViewMatrix * vec4(position, 1.0);
+        float depth = mv0.z + uCamDist;                    // + = closer to the viewer than the head's centre
+        float line = ((mv0.y + depth * uDepthBend) / 1.5 + 0.5) * uRows;
+        // The lines themselves vibrate like plucked strings near the cursor, and tear when pressed
+        float string = sin(mv0.x * 55.0 - uTime * 7.0 + yN * 31.0) * sin(mv0.x * 15.0 + uTime * 2.3);
+        line += string * lens * (0.3 + 0.3 * uPress) * uVib + ring * uPulse * sin(dw * 70.0 - uTime * 6.0) + sin(p.x * 260.0 + uTime * 30.0) * lens * pressOnly * 0.45 * uTear;
+        // (lines no longer drop in: they're drawn in place)
+        vLine = line; vHover = lensSoft; vRing = ring;
+        vUv = uv;
+        vN = normalize(normalMatrix * n);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+        vScr = gl_Position.xy / gl_Position.w;
+      }`,
+    fragmentShader: `
+      uniform sampler2D uTex;
+      uniform float uTime, uHover, uAspect, uReveal, uInk, uBuild, uRows;
+      uniform float uWmin, uWmax, uPhotoW, uDetail, uCrease, uRim, uThin, uShimmer;
+      uniform vec2 uMouse;
+      varying vec2 vScr;
+      varying vec2 vUv; varying vec3 vN; varying float vLine, vHover, vRing, vBuild;
+      float lineAt(float c, float w) {
+        float fw = fwidth(c);
+        float d = abs(fract(c) - 0.5);                    // 0 at the centre of a line
+        float wd = max(w, fw * 0.6);                      // never thinner than about a pixel
+        float l = 1.0 - smoothstep(wd - fw, wd + fw, d);
+        return l * (1.0 - 0.8 * smoothstep(0.3, 0.7, fw));
+      }
+      void main() {
+        // Darkness: mostly from your photos (glasses, eyes, brows, stubble, shirt), plus light on the 3D form
+        float tone = texture2D(uTex, vUv, 0.0).r;          // full-sharpness read of the photo (2048px texture)
+        float toneSoft = texture2D(uTex, vUv, 4.5).r;      // blurred version of the same area
+        float photoDark = smoothstep(0.25, 0.85, 1.0 - tone);
+        // Local detail: anything darker than its surroundings (eyes, brows, lip line, nostrils, stubble edge) gets extra ink
+        float localDetail = clamp((toneSoft - tone) * 4.5, 0.0, 1.0);
+        vec3 N = normalize(vN);
+        vec3 L = normalize(vec3(-0.5, 0.55, 0.7));
+        float diff = max(dot(N, L), 0.0);
+        float lightDark = clamp(1.0 - (0.25 + 0.95 * diff * diff), 0.0, 1.0);
+        float rim = pow(1.0 - abs(N.z), 3.0);             // edges of the form darken a touch, like an engraver's outline
+        // Creases: where the surface turns sharply (glasses rims, nostrils, lips, ears, jaw), lines get darker
+        float crease = smoothstep(0.08, 0.45, length(fwidth(N)));
+        float dark = clamp(mix(lightDark, photoDark, uPhotoW) + rim * uRim + localDetail * uDetail + crease * uCrease, 0.0, 1.0);
+        float w = mix(uWmin, uWmax, pow(dark, 1.3));      // fine hairlines; darks swell a little more to carry tone
+        // Hover: lines split into grey ghosts, shimmer, and the ring darkens briefly
+        float split = 0.0;                                 // no ghost lines: they tripled the line count under the cursor
+        w *= 1.0 - uThin * vHover;                         // lines thin slightly under the cursor, so they read as more open
+        w *= 1.0 + vHover * uShimmer * max(0.0, sin(vLine * 0.4 - uTime * 5.0 + vUv.x * 30.0));
+        w += vRing * 0.025;                                 // pulse waves darken slightly as they pass
+        float l0 = lineAt(vLine, w), l1 = lineAt(vLine + split, w * 0.45), l2 = lineAt(vLine - split, w * 0.45);
+        // Hover: a pulsing, feathered window around the cursor where the ink comes up to full strength
+        vec2 rv = (vScr - uMouse) * vec2(uAspect, 1.0) * 0.5;
+        float rd = length(rv), ra = atan(rv.y, rv.x);
+        float pulse = pow(0.5 + 0.5 * sin(uTime * 2.4), 2.0);                            // strong, quick swell then a slower ebb
+        float edge = uReveal * (0.8 + 0.45 * pulse                                       // dramatic breathing: the window swells and shrinks
+                     + 0.03 * sin(ra * 3.0 + uTime * 1.1) + 0.018 * sin(ra * 5.0 - uTime * 1.7)); // slight drift in the outline
+        float hov = uHover * (1.0 - smoothstep(edge * 0.15, edge, rd)) * (0.7 + 0.3 * pulse); // soft, feathered edge
+        float k = (0.55 + 0.4 * dark) * uInk;               // faint ink everywhere
+        float s = step(0.001, split);
+        float paper = (1.0 - k * l0) * (1.0 - k * 0.3 * l1 * s) * (1.0 - k * 0.3 * l2 * s); // lighter ghosts, so no dark band
+        // Intro: every line is drawn as its own quick pen stroke. Strokes start at slightly random times (loosely
+        // top to bottom) and alternate direction, so it reads as lines being drawn, not a wipe across the page
+        float li = floor(vLine);
+        float order = (uRows - li) / uRows;                          // 0 = top line, 1 = bottom line
+        float rnd = fract(sin(li * 12.9898) * 43758.5453);           // per-line randomness
+        float start = order * 0.62 + rnd * 0.3;                      // when this stroke begins (0..~0.92 of the intro)
+        float prog = clamp((uBuild - start) / 0.08, 0.0, 1.0);       // each stroke is fast
+        float xN = clamp((vScr.x * 0.5 + 0.5 - 0.22) / 0.56, 0.0, 1.0); // across the portrait's width, not the whole screen
+        float xd = mod(li, 2.0) < 1.0 ? xN : 1.0 - xN;               // alternate left-to-right / right-to-left
+        float drawn = 1.0 - smoothstep(prog * 1.04 - 0.03, prog * 1.04, xd); // crisp pen tip
+        paper = mix(1.0, paper, drawn);
+        gl_FragColor = vec4(vec3(clamp(paper, 0.06, 1.0)), 1.0);
+      }`,
+  });
+  headMat.extensions = { derivatives: true };
+  let head = null;
+  loadGeometry().then(geo => { head = new THREE.Mesh(geo, headMat); rig.add(head); uniforms.uBuild.value = 0; }); // draw-in starts once the model is ready
+
+  // Faint hairlines on the page behind the head, so the portrait sits in the same field of lines
+  const bgMat = new THREE.ShaderMaterial({
+    uniforms: { uRows: uniforms.uRows, uBuild: uniforms.uBuild },
+    vertexShader: `varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `
+      uniform float uRows, uBuild; varying vec2 vP;
+      void main(){
+        float c = (vP.y / 1.5 + 0.5) * uRows;
+        float fw = fwidth(c), d = abs(fract(c) - 0.5);
+        float l = 1.0 - smoothstep(max(0.02, fw * 0.6) - fw, max(0.02, fw * 0.6) + fw, d);
+        float fade = smoothstep(1.9, 0.6, length(vP * vec2(0.55, 0.85)));   // dissolves towards the edges
+        float appear = clamp((uBuild * 1.25 - (0.5 - vP.y / 1.5)) / 0.25, 0.0, 1.0);
+        gl_FragColor = vec4(vec3(1.0 - 0.13 * l * fade * appear), 1.0);
+      }`,
+  });
+  bgMat.extensions = { derivatives: true };
+  const bg = new THREE.Mesh(new THREE.PlaneGeometry(8, 5), bgMat);
+  bg.position.z = -0.9;
+  // scene.add(bg);   // background lines switched off: clean white page, only the portrait has lines
+
+  // ---------- Layout ----------
+  let narrow = false;
+  function resize() {
+    const w = hero.clientWidth, h = hero.clientHeight;
+    narrow = w < 820;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    uniforms.uAspect.value = camera.aspect;
+    const fit = BUST_H * 1.3 * (camera.aspect < 0.75 ? 0.75 / camera.aspect : 1);
+    const dist = fit / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+    camera.position.set(0, 0.04, dist);
+    uniforms.uCamDist.value = dist;
+    camera.lookAt(0, 0.02, 0);
+    camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(hero);
+  resize();
+
+  // ---------- Pointer ----------
+  const ndc = new THREE.Vector2();
+  const target = new THREE.Vector2(9, 9);
+  const tilt = { x: 0, y: 0, tx: 0, ty: 0 };
+  let hoverTarget = 0;      // 1 only while the cursor is actually over the portrait
+  let inHero = 0;           // cursor anywhere on the page: the head still turns to follow it
+  let needPick = false;
+
+  function onPointer(e) {
+    const r = hero.getBoundingClientRect();
+    ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    tilt.tx = ndc.x; tilt.ty = ndc.y;
+    inHero = 1;
+    needPick = true;        // check on the next frame whether the cursor is over the head
+  }
+
+  // ---------- Is the cursor over the head? ----------
+  // Renders the head as a plain white silhouette into a tiny offscreen image, then reads the one pixel under
+  // the cursor. Exact to the drawn outline (hair, ears, shoulders) and cheap, whatever the triangle count.
+  const pickRT = new THREE.WebGLRenderTarget(1, 1);
+  const pickMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const pickPx = new Uint8Array(4);
+  function pick() {
+    if (!head) return 0;
+    const w = Math.max(1, Math.round(hero.clientWidth / 4)), h = Math.max(1, Math.round(hero.clientHeight / 4));
+    if (pickRT.width !== w || pickRT.height !== h) pickRT.setSize(w, h);
+    const prevMat = head.material, prevClear = renderer.getClearColor(new THREE.Color()), prevAlpha = renderer.getClearAlpha();
+    head.material = pickMat;
+    renderer.setRenderTarget(pickRT);
+    renderer.setClearColor(0x000000, 1);
+    renderer.clear();
+    renderer.render(scene, camera);
+    const x = Math.min(w - 1, Math.max(0, Math.floor((ndc.x * 0.5 + 0.5) * w)));
+    const y = Math.min(h - 1, Math.max(0, Math.floor((ndc.y * 0.5 + 0.5) * h)));
+    renderer.readRenderTargetPixels(pickRT, x, y, 1, 1, pickPx);
+    renderer.setRenderTarget(null);
+    renderer.setClearColor(prevClear, prevAlpha);
+    head.material = prevMat;
+    return pickPx[0] > 128 ? 1 : 0;
+  }
+  addEventListener('pointermove', onPointer);
+  let pressTarget = 0;
+  addEventListener('pointerdown', e => {
+    onPointer(e);
+    if (e.pointerType === 'touch') { clearTimeout(window._portraitT); window._portraitT = setTimeout(() => { hoverTarget = 0; inHero = 0; pressTarget = 0; }, 1800); }
+    if (pick()) pressTarget = 1;                           // pressing only counts on the portrait too
+  });
+  addEventListener('pointerup', () => { pressTarget = 0; });
+  addEventListener('pointercancel', () => { pressTarget = 0; });
+  addEventListener('blur', () => { pressTarget = 0; });
+  document.documentElement.addEventListener('pointerleave', () => { hoverTarget = 0; inHero = 0; tilt.tx = tilt.ty = 0; });
+
+
+  // ---------- Loop ----------
+  const clock = new THREE.Clock();
+  let t = 0, running = false, raf = 0;
+  let yaw = 0, pitch = 0;
+
+  function frame() {
+    const dt = Math.min(clock.getDelta(), 0.05);
+    const still = reduceMotion.matches;
+    t += dt;
+    uniforms.uTime.value = t;
+
+    // Head moves even when the cursor stays still, so re-check what's under it every few frames
+    if (inHero && (needPick || (Math.floor(t * 20) % 3 === 0))) { hoverTarget = pick(); needPick = false; }
+    // While over the portrait the effect follows the cursor; once it leaves, the effect stays where it was and winds down
+    if (hoverTarget) { if (uniforms.uHover.value < 0.02) uniforms.uMouse.value.copy(ndc); target.copy(ndc); }
+    uniforms.uMouse.value.lerp(target, 1 - Math.pow(0.0008, dt));
+    // Ease in quickly, ease out slowly (motion.fadeOut seconds to mostly settle)
+    const fadeRate = hoverTarget ? 0.02 : Math.pow(0.05, 1 / motion.fadeOut);
+    uniforms.uHover.value += (hoverTarget - uniforms.uHover.value) * (1 - Math.pow(fadeRate, dt));
+    const pressGoal = (pressTarget || hoverTarget) ? 1 : 0;        // hovering gives exactly the same effect as pressing
+    const pressRate = pressTarget ? 0.002 : (pressGoal ? 0.03 : fadeRate);
+    uniforms.uPress.value += (pressGoal - uniforms.uPress.value) * (1 - Math.pow(pressRate, dt));
+
+    uniforms.uBuild.value = still ? 1 : Math.min(1, uniforms.uBuild.value + dt / motion.drawIn);              // draw-in takes about 3.8 seconds
+
+    // The head turns smoothly to look towards the cursor (one real 3D model, any angle)
+    tilt.x += (tilt.tx - tilt.x) * (1 - Math.pow(0.04, dt));
+    tilt.y += (tilt.ty - tilt.y) * (1 - Math.pow(0.04, dt));
+    const yawGoal = inHero ? tilt.x * motion.yaw : (still ? 0 : Math.sin(t * 0.22) * 0.45);
+    const pitchGoal = inHero ? -tilt.y * motion.pitch : (still ? 0 : Math.sin(t * 0.17) * 0.04);
+    yaw += (yawGoal - yaw) * (1 - Math.pow(motion.turnSmooth, dt));
+    pitch += (pitchGoal - pitch) * (1 - Math.pow(motion.turnSmooth, dt));
+    rig.rotation.set(pitch, yaw, 0);
+
+    renderer.render(scene, camera);
+    if (running) raf = requestAnimationFrame(frame);
+  }
+  function start() { if (!running) { running = true; clock.getDelta(); raf = requestAnimationFrame(frame); } }
+  function stop() { running = false; cancelAnimationFrame(raf); }
+
+  new IntersectionObserver(([en]) => en.isIntersecting ? start() : stop()).observe(hero);
+  document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+  start();
+  requestAnimationFrame(() => hero.classList.add('is-ready'));
+  };
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js';
+  s.onload = start;
+  document.head.appendChild(s);
+})();
+</script>

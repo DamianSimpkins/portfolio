@@ -810,6 +810,8 @@ html[data-returning]::view-transition-new(root) {
 .project-list__title {
   display: block;
   font-weight: 400;
+  /* Fill each line; the heading default balances, which strands short words at line ends */
+  text-wrap: wrap;
   transition: opacity 0.2s;
 }
 
@@ -1235,4 +1237,26 @@ html[data-returning]::view-transition-new(root) {
   grid-template-columns: 6rem minmax(0, 1fr);
   align-items: center;
   gap: var(--stack-sm);
+}
+
+/* Scan-line portrait: fixed behind the home page content */
+.portrait-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+@media (max-width: 47.99rem) {
+  .portrait-bg { display: none; }
+}
+.portrait-bg__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+.portrait-bg.is-ready .portrait-bg__canvas { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .portrait-bg__canvas { transition: none; }
 }

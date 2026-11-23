@@ -6,7 +6,7 @@ summary: One-line summary of the project and the outcome it delivered.
 type: Project type
 role: [Design, Development]
 order: 1
-cover: /projects/gwmwater/desktops.jpg
+cover: /projects/gwmwater/hero.jpg
 thumb: /projects/gwmwater/thumb.jpg
 background: "#EBF8FE"
 panel: "#D1EFFC"
@@ -53,8 +53,8 @@ services:
   - Front-end components
   - AI-assisted development
 galleryBottom:
-  - { src: /projects/gwmwater/desktop-01.jpg, alt: "Homepage design on desktop", layout: half }
-  - { src: /projects/gwmwater/desktop-02.jpg, alt: "Inner page design on desktop", layout: half }
+  - { src: /projects/gwmwater/homepage.jpg, alt: "Homepage design on desktop", layout: full }
+  - { src: /projects/gwmwater/reservoirs.jpg, alt: "Inner page design on desktop", layout: full }
   - { src: /projects/gwmwater/mobile-01.png, alt: "Mobile design, first screen", layout: third, frame: phone }
   - { src: /projects/gwmwater/mobile-02.png, alt: "Mobile design, second screen", layout: third, frame: phone }
   - { src: /projects/gwmwater/mobile-03.png, alt: "Mobile design, third screen", layout: third, frame: phone }

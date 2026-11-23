@@ -3,11 +3,13 @@ import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import ProjectList from '../components/ProjectList.astro';
+import PortraitBackground from '../components/PortraitBackground.astro';
 
 const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort((a, b) => a.data.order - b.data.order);
 ---
 
 <Base>
+  <PortraitBackground />
   <section class="section">
     <div class="container">
       <h1 data-reveal class="intro">
