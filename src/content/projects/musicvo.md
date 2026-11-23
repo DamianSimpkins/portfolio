@@ -1,5 +1,5 @@
 ---
-title: Musicvo - An interactive music toy
+title: Musicvo - An interactive musical toy
 client: Musicvo
 year: 2026
 summary: A browser instrument where 3D shapes are the instruments. Hover to play, push shapes into each other and every overlap makes a new sound.
@@ -54,4 +54,4 @@ services:
   - AI-assisted development
 ---
 
-<a href="https://musicvo.damiansimpkins.com/" target="_blank" rel="noopener">Musicvo</a> is a music toy you play with your mouse. <a href="https://musicvo.damiansimpkins.com/" target="_blank" rel="noopener">Have a go</a>, it's free to play in your browser.
+<a href="https://musicvo.damiansimpkins.com/" target="_blank" rel="noopener">Musicvo</a> is a musical toy that runs in your browser. Every 3D shape is a synthesised instrument: hover to play it, and when two shapes overlap they make a new sound together, all locked to a shared beat with an optional drum machine. It's free to play, so <a href="https://musicvo.damiansimpkins.com/" target="_blank" rel="noopener">have a go</a>.
