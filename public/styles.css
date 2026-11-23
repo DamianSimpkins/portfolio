@@ -945,7 +945,7 @@ html[data-returning]::view-transition-new(root) {
   --section-gap: var(--space-8);
 }
 
-/* Same size and weight as the project links on the home page */
+/* Larger than the project links on the home page, same weight */
 .case-title {
   /* Same centred column as the copy below; fills its width instead of balancing short lines */
   width: 100%;
