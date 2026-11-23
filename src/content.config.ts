@@ -52,6 +52,8 @@ const projects = defineCollection({
       .default([]),
     // Page background for this project's case study, e.g. "#EBF8FE"
     background: z.string().optional(),
+    // Draws a hairline around gallery images, for dark pages where the images are dark too
+    imageBorder: z.boolean().default(false),
     // Colour behind rows of two or more images, e.g. "#EBEFF7"; defaults to a faint tint of the page
     panel: z.string().optional(),
     // Blocks after the overview, and after "What I did"

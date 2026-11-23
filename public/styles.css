@@ -1131,6 +1131,12 @@ html[data-returning]::view-transition-new(root) {
   height: auto;
 }
 
+/* Hairline inside the edge, so dark images read against a dark page without changing their size */
+.case--image-border .gallery img {
+  outline: var(--rule) solid var(--color-border);
+  outline-offset: calc(var(--rule) * -1);
+}
+
 .gallery figcaption {
   margin-top: var(--space-2);
 }

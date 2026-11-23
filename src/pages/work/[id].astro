@@ -15,7 +15,7 @@ export async function getStaticPaths() {
 }
 
 const { project, next } = Astro.props;
-const { title, cover, summary, services, sections, background, panel, galleryTop, galleryBottom } = project.data;
+const { title, cover, summary, services, sections, background, panel, imageBorder, galleryTop, galleryBottom } = project.data;
 const { Content } = await render(project);
 
 // Sections with `before` sit inside the second gallery, splitting it at that image
@@ -65,7 +65,7 @@ const divider = onDark ? 'rgb(255 255 255 / 0.2)' : 'rgb(0 0 0 / 0.12)';
       <path d="M5 5l14 14M19 5L5 19" />
     </svg>
   </a>
-  <div class="case">
+  <div class:list={['case', imageBorder && 'case--image-border']}>
     {cover && <CaseHero src={cover} alt={title} id={project.id} />}
 
     <section class="section" aria-label="Overview">
