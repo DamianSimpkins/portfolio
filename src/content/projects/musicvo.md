@@ -12,9 +12,12 @@ url: https://musicvo.damiansimpkins.com/
 draft: false
 background: "#000000"
 sections:
+  - label: Why I made it
+    text: |-
+      I loved tinkering with loops and drum machines when I played in bands, and I still drum today. I wanted to marry that world of loops and beats with something you can see, so every shape you add changes both the picture and the sound. It makes a different arrangement every time, and I enjoy not knowing which melodies and harmonies the shapes will make together. It really does feel like a toy, and the more I work on it, the more possibilities I see.
   - label: How it plays
     text: |-
-      Click empty space to add a shape. Hover to play, press to pulse on the beat, and drag to move a shape. When two shapes overlap they make a sound of their own, and a seam glows where they cut.
+      Add a shape and it becomes an instrument. Hovering plays it softly, holding it makes it pulse with the beat, and dragging rolls it around the stage. The fun starts when shapes meet: every overlap makes a sound of its own, and a seam of light glows where the surfaces cut.
   - label: Drums
     text: |-
       Everything in Musicvo is generated live in the browser, so there are no samples or recordings anywhere. I wanted each shape to feel like its own instrument, so the sphere is a Rhodes-style keyboard, the ring is a theremin, the cube is a dub bass and the crystal is a breathy choir, all built from simple oscillators, filters and noise. The drums are made the same way: a kick that drops in pitch, a noisy snare, hats, a shaker, and a tin-can "clank" I liked the sound of. I set up four patterns (boom bap, half-time, shuffle, sparse) and four kits (dusty, room, tape, crunch) that run through a bit-crusher, a cassette-style wobble and a room reverb, to get a dirty trip-hop feel. Everything runs on one shared clock, so the drums, the shape pulses and the delay stay in time even when you change the tempo. The beat fades in slowly over two bars, and I added a drum fill on the Space bar that always lands on the beat.
@@ -23,23 +26,15 @@ sections:
       I wanted to be able to adjust the sound while it's playing, so the settings are in a panel that slides in from the right and stays open as I play. It lets me balance the four instruments, set how far the cursor bends a note, choose the beat's kit, pattern and tempo, and control how dirty, roomy and swung it is. I can also set how much a shape swells under the cursor, how long I hold before it pulses, and the video frame for recording. A master volume sits at the top, and the panel remembers my choices.
   - label: Recordings
     text: |-
-      I wanted to be able to share what I made, so the app has a recorder built in. It captures the stage and the sound together and saves a video file. The sound is the finished mix, so a recording sounds exactly like what I hear. I added frames for 9:16, 4:5 and square, so a vertical video for Instagram or TikTok comes out at exactly 1080 × 1920 whatever size my window is. The recorder also steps down through smaller sizes if a computer can't cope with 4K. I've only tested it in Chrome-based browsers so far.
+      I wanted to be able to share what I made, so the app has a recorder built in. It captures the stage and the sound together and saves a video file. The sound is the finished mix, so a recording sounds exactly like what I hear. I added frames for 9:16, 4:5 and square, so a vertical video for Instagram or TikTok comes out at exactly 1080 × 1920 whatever size my window is. The recorder also steps down through smaller sizes if a computer can't cope with 4K.
   - label: Working with Claude Code
     text: |-
       I built Musicvo with Claude Code. I set the concept, the look and the sound, and made every product decision. I described what I wanted, listened and watched the result, then steered or reversed it until it felt right. Claude Code wrote and refactored much of the code under that direction. It started as a single-file prototype and grew into about 2,000 lines across 23 modules.
+  - label: Up next
+    text: |-
+      Hand tracking in the browser is next, so you could play Musicvo without touching anything. A fingertip would hover a shape and set its pitch by height, a pinch would press and drag, and two hands could work like a theremin. The camera picture would stay on your device.
 
-      I didn't take its word that something worked. When I moved the prototype into modules, we compared pixels and the notes played in each phase against the original, and the results matched. When the drum fade-in sounded sudden, we measured the output and moved the fade to the finished sound. When recordings looked soft, we measured them at about 0.44 times as sharp as the live canvas, changed the encoder settings and got to about 1.1 times. When a large retina window made recording fail silently, we added fallbacks from 4K down to 720p.
-
-      Plans live in project notes, so the next step is written down before it's built.
-  - label: Camera-based interactions (planned)
-    text: |-
-      This is something I plan to build next, but it isn't done yet. The idea is hand tracking in the browser, so you could play Musicvo without touching anything: your fingertip hovers a shape and sets its pitch by height, pinching presses and drags, and two hands could work like a theremin, one for pitch and one for volume. Later I'd add simple gestures like holding up fingers to choose a shape and a fist to loop one. The camera picture would stay on your device and never be sent anywhere. I built the app so that every mouse, finger or hand has its own hover and press, so a hand-tracking adapter should slot in without reworking everything.
-  - label: Things I'd like to add
-    text: |-
-      There are a few things I'd like to try next. Shareable links would let me send someone the exact scene I made, and MIDI would let the shapes control a synth or music software. I'd like a choice of keys and scales, because everything is currently in D minor pentatonic, which keeps whatever you stack in tune. I'd also like a self-playing mode that slowly evolves on its own, visuals that react to the actual sound, and a touch-friendly version for phones and tablets. I haven't built any of these yet.
-  - label: Where it stands
-    text: |-
-      Musicvo is live and free to play. I've only tested it in Chrome-based browsers on desktop, and sound quality and performance on phones still need testing on real devices.
+      After that I'd like shareable links to a scene, MIDI so the shapes can control a synth, a choice of keys and scales, a self-playing mode, visuals that react to the sound, and a touch-friendly version for phones and tablets.
 services:
   - Concept
   - Interaction design
