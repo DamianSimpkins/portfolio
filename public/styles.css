@@ -457,6 +457,7 @@ a:hover {
 
 .nav__brand {
   color: var(--color-text);
+  font-size: var(--body-sm);
   font-weight: 400;
 }
 
